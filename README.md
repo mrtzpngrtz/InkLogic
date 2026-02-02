@@ -1,6 +1,8 @@
-# Gemini Sketch (Prototype)
+# InkLogic (Prototype)
 
 Work in progress prototype connecting paper Smartpen Notebooks to generative AI.
+
+![InkLogic Screenshot](screenshot.png)
 
 ## Setup
 1. `npm install`
