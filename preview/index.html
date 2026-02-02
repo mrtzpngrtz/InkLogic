@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gemini Sketch Preview</title>
+    <style>
+        body { background: #000; color: #fff; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #content { text-align: center; width: 90%; max-width: 800px; height: 90vh; display: flex; flex-direction: column; justify-content: center; }
+        img { max-width: 100%; max-height: 80vh; border: 1px solid #333; object-fit: contain; }
+        #text { font-size: 1.5em; line-height: 1.6; white-space: pre-wrap; text-align: left; background: #111; padding: 30px; border-radius: 10px; }
+        #status { color: #666; margin-bottom: 20px; font-size: 1.2em; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* Spinner */
+        .loader {
+            border: 6px solid #333;
+            border-top: 6px solid #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            display: none;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <div id="status">Ready</div>
+        <div class="loader" id="loader"></div>
+        <div id="result"></div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const statusEl = document.getElementById('status');
+        const resultEl = document.getElementById('result');
+        const loader = document.getElementById('loader');
+
+        socket.on('status', (msg) => {
+            statusEl.innerText = msg;
+            if (msg.toLowerCase().includes('thinking') || msg.toLowerCase().includes('generating')) {
+                loader.style.display = 'block';
+                resultEl.style.opacity = '0.3'; // Dim previous result
+            } else {
+                loader.style.display = 'none';
+                resultEl.style.opacity = '1';
+            }
+        });
+
+        socket.on('result', (data) => {
+            loader.style.display = 'none';
+            resultEl.style.opacity = '1';
+            if (data.type === 'text') {
+                resultEl.innerHTML = `<div id="text">${data.content}</div>`;
+                statusEl.innerText = "Response";
+            } else if (data.type === 'image') {
+                // Add timestamp to prevent caching
+                resultEl.innerHTML = `<img src="${data.url}?t=${Date.now()}">`;
+                statusEl.innerText = "Generated Image";
+            }
+        });
+    </script>
+</body>
+</html>

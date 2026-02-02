@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InkLogic</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        #split-view {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            height: 100%;
+            background-color: #121212;
+        }
+        #canvas-column {
+            flex: 1;
+            position: relative;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+        #image-column {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            background-color: #000;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Helvetica', sans-serif;
+        }
+        #generated-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+        .toolbar-group {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            margin-right: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div id="toolbar">
+        <div class="toolbar-group">
+            <button id="connectBtn">Connect</button>
+            <button id="clearBtn">Clear</button>
+        </div>
+        <div class="toolbar-group">
+            <button id="sendBtn">Text</button>
+            <button id="genImageBtn">Image</button>
+        </div>
+        <div class="toolbar-group">
+            <button id="defineBoxBtn" style="font-size: 0.7em;">Set Text Box</button>
+            <button id="defineImageBoxBtn" style="font-size: 0.7em;">Set Image Box</button>
+        </div>
+        <button id="settingsBtn" style="margin-left: auto;">Settings</button>
+    </div>
+    
+    <div style="background: #222; padding: 5px 10px; font-size: 0.8em; color: #aaa; display: flex; justify-content: space-between;">
+        <span id="status">Ready</span>
+        <span id="response-preview" style="margin-left: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50%;"></span>
+    </div>
+
+    <div id="split-view">
+        <div id="canvas-column">
+            <div id="canvas-container">
+                <canvas id="penCanvas"></canvas>
+                <div id="checkbox-overlay" style="position: absolute; border: 2px dashed #00ff00; pointer-events: none; display: none;">
+                    <div style="background: rgba(0, 255, 0, 0.2); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; text-shadow: 0 0 2px #000;">Text</div>
+                </div>
+                <div id="image-trigger-overlay" style="position: absolute; border: 2px dashed #0088ff; pointer-events: none; display: none;">
+                    <div style="background: rgba(0, 136, 255, 0.2); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; text-shadow: 0 0 2px #000;">Image</div>
+                </div>
+            </div>
+            <div id="debug-info" style="font-family: monospace; font-size: 1.0em; color: #666; padding: 5px; position: absolute; bottom: 0; left: 0;"></div>
+        </div>
+
+        <div id="image-column" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+            <button id="clearOutputBtn" style="position: absolute; top: 10px; right: 10px; z-index: 100; font-size: 0.7em; background: rgba(0,0,0,0.5); border: 1px solid #444;">Clear Output</button>
+            <div id="placeholder-text" style="color: #444;">Result will appear here</div>
+            <img id="generated-image">
+            <div id="response-area" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; background: #1e1e1e; padding: 40px; box-sizing: border-box; display: none; font-size: 1.1em; line-height: 1.6; color: #e0e0e0;"></div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-btn" id="closeSettingsBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <h3>Gemini API</h3>
+                    <div>
+                        <label for="apiKey">API Key:</label>
+                        <input type="password" id="apiKey" placeholder="Enter Gemini API Key" style="width: 100%; box-sizing: border-box; margin-bottom: 10px;">
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <h3>Prompts</h3>
+                    <div>
+                        <label for="prompt">Text Prompt:</label>
+                        <textarea id="prompt" rows="3" style="width: 100%; box-sizing: border-box; margin-bottom: 10px;">you are a sketchbook assitant, you get your prompt via image.</textarea>
+                    </div>
+                    <div>
+                        <label for="imagePrompt">Image Prompt Suffix:</label>
+                        <textarea id="imagePrompt" rows="3" style="width: 100%; box-sizing: border-box;"> . Follow the annotations and generate the image without annotations. Aspect ratio 9:16.</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>
