@@ -4,3 +4,12 @@ generated_images/
 dist/
 release/
 *.log
+
+# Personal data and history
+history.json
+*.json.bak
+
+# API keys and sensitive config (if any)
+.env
+.env.local
+config.local.js
