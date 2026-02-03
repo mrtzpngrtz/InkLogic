@@ -60,6 +60,11 @@ let lastPoint = null;
 let isPenDown = false;
 let strokeHistory = []; 
 let currentStroke = null;
+let definitionPoints = [];
+
+// Page Recognition State
+let currentPageId = null;
+let notebookData = {}; 
 
 let isDefiningBox = false; // Text Trigger
 let isDefiningImageBox = false; // Image Trigger
@@ -125,18 +130,32 @@ window.addEventListener('load', () => {
     resizeCanvas();
     setTimeout(resizeCanvas, 100);
 
-    // Load saved sketch - CRITICAL for persistence
+    // Load notebook data
     try {
-        const savedHistory = localStorage.getItem('strokeHistory');
-        if (savedHistory) {
-            strokeHistory = JSON.parse(savedHistory);
-            console.log("Loaded stroke history:", strokeHistory.length, "strokes");
-            redrawAll();
+        const savedData = localStorage.getItem('notebookData');
+        if (savedData) {
+            notebookData = JSON.parse(savedData);
+            console.log("Loaded notebook data:", Object.keys(notebookData).length, "pages");
+        }
+        
+        // Load last page ID if available
+        const lastPage = localStorage.getItem('lastPageId');
+        if (lastPage && notebookData[lastPage]) {
+             currentPageId = lastPage;
+             strokeHistory = notebookData[lastPage];
+             console.log("Restored last page:", currentPageId);
+             statusSpan.innerText = `Restored Page: ${lastPage.split('_').pop()}`;
+             redrawAll();
         } else {
-            console.log("No saved stroke history found.");
+             // Fallback: Check for legacy strokeHistory
+             const savedHistory = localStorage.getItem('strokeHistory');
+             if (savedHistory) {
+                 strokeHistory = JSON.parse(savedHistory);
+                 console.log("Migrating legacy history");
+             }
         }
     } catch (e) {
-        console.error("Error loading stroke history:", e);
+        console.error("Error loading history:", e);
     }
 });
 
@@ -287,6 +306,11 @@ function updateOverlay(element, region, isDefining, label) {
 clearBtn.addEventListener('click', () => {
     strokeHistory = [];
     currentStroke = null;
+    if (currentPageId) {
+        notebookData[currentPageId] = [];
+        localStorage.setItem('notebookData', JSON.stringify(notebookData));
+    }
+    // Also clear legacy
     localStorage.removeItem('strokeHistory');
     redrawAll();
     generatedImage.style.display = 'none';
@@ -334,10 +358,35 @@ PenHelper.messageCallback = (mac, type, args) => {
     }
 };
 
-PenHelper.dotCallback = (mac, dot) => {
+const handleDot = (mac, dot) => {
     if (dot.x <= 0.1 && dot.y <= 0.1) return;
 
-    debugInfo.innerText = `Last Pen: x=${dot.x.toFixed(4)}, y=${dot.y.toFixed(4)}`;
+    // Attempt to extract page info from dot or dot.pageInfo
+    const section = dot.section || (dot.pageInfo && dot.pageInfo.section);
+    const owner = dot.owner || (dot.pageInfo && dot.pageInfo.owner);
+    const note = dot.note || dot.book || (dot.pageInfo && (dot.pageInfo.note || dot.pageInfo.book));
+    const page = dot.page || (dot.pageInfo && dot.pageInfo.page);
+
+    // Fallback Page Recognition (Handle page change on Move/Up events or missed Down events)
+    const pageId = `${section}_${owner}_${note}_${page}`;
+
+    // DEBUG: Inspect pageInfo content
+    try {
+        const infoStr = dot.pageInfo ? JSON.stringify(dot.pageInfo) : "No pageInfo";
+        debugInfo.innerText = `ID: ${pageId} | Info: ${infoStr}`;
+    } catch (e) {
+        debugInfo.innerText = `ID: ${pageId} | Error reading info`;
+    }
+
+    // Check if we have valid page info (all parts are numbers)
+    const isValidPage = Number.isInteger(section) && Number.isInteger(owner) && Number.isInteger(note) && Number.isInteger(page);
+
+    if (isValidPage && currentPageId !== pageId) {
+        console.log(`Fallback Page Switch detected in handleDot: ${currentPageId} -> ${pageId}`);
+        handlePage(dot);
+        // handlePage saves old history, switches ID, loads new history.
+        // We continue processing this dot for the new page.
+    }
 
     const screen = mapToScreen(dot.x, dot.y);
 
@@ -371,8 +420,16 @@ PenHelper.dotCallback = (mac, dot) => {
                 definitionPoints.push(...currentStroke.points);
             } else {
                 strokeHistory.push(currentStroke);
-                // SAVE STROKE HISTORY - Critical for persistence
-                localStorage.setItem('strokeHistory', JSON.stringify(strokeHistory));
+                
+                // SAVE STROKE HISTORY - Page Aware
+                if (currentPageId) {
+                    notebookData[currentPageId] = strokeHistory;
+                    localStorage.setItem('notebookData', JSON.stringify(notebookData));
+                } else {
+                    // Fallback / Initial
+                    localStorage.setItem('strokeHistory', JSON.stringify(strokeHistory));
+                }
+
                 checkTriggerRegions(currentStroke);
             }
             
@@ -382,6 +439,87 @@ PenHelper.dotCallback = (mac, dot) => {
         lastPoint = null;
     }
 };
+
+const handlePage = (dot) => {
+    try {
+        // Robust extraction
+        const section = dot.section || (dot.pageInfo && dot.pageInfo.section);
+        const owner = dot.owner || (dot.pageInfo && dot.pageInfo.owner);
+        const note = dot.note || dot.book || (dot.pageInfo && (dot.pageInfo.note || dot.pageInfo.book));
+        const page = dot.page || (dot.pageInfo && dot.pageInfo.page);
+        
+        const pageId = `${section}_${owner}_${note}_${page}`;
+        console.log(`Checking Page Switch: Current=${currentPageId}, New=${pageId}`);
+
+        if (currentPageId !== pageId) {
+            console.log(`Page switched: ${currentPageId} -> ${pageId}`);
+            statusSpan.innerText = `Switching to Page ${dot.note}.${dot.page}...`;
+            
+            // Finish current stroke on the OLD page if exists
+            if (currentStroke) {
+                console.log("Finishing stroke on old page");
+                strokeHistory.push(currentStroke);
+                currentStroke = null;
+                isPenDown = false; // Reset pen state
+            }
+
+            // Save current strokes
+            if (currentPageId) {
+                notebookData[currentPageId] = strokeHistory;
+            } else {
+                // Initial migration
+                if (strokeHistory.length > 0) {
+                     console.log("Assigning initial strokes to page " + pageId);
+                     notebookData[pageId] = strokeHistory;
+                }
+            }
+            
+            // Switch State
+            currentPageId = pageId;
+            localStorage.setItem('lastPageId', currentPageId);
+            
+            // Load new strokes
+            if (notebookData[pageId]) {
+                strokeHistory = notebookData[pageId];
+            } else {
+                strokeHistory = [];
+                notebookData[pageId] = strokeHistory;
+            }
+            
+            // Save full data
+            localStorage.setItem('notebookData', JSON.stringify(notebookData));
+            
+            redrawAll();
+            statusSpan.innerText = `Page: ${dot.note}.${dot.page}`;
+        }
+    } catch (e) {
+        console.error("Error in handlePage:", e);
+        statusSpan.innerText = "Error Switching Page";
+    } finally {
+        // Restore callback asynchronously
+        setTimeout(() => {
+            console.log("Restoring dotCallback");
+            PenHelper.dotCallback = handleDot;
+            
+            // Process buffered dots
+            try {
+                const pageId = `${dot.section}_${dot.owner}_${dot.note}_${dot.page}`;
+                const buffered = PenHelper.dotStorage[pageId];
+                if (buffered && buffered.length > 0) {
+                    console.log(`Processing ${buffered.length} buffered dots`);
+                    const mac = PenHelper.mac || "unknown";
+                    buffered.forEach(d => handleDot(mac, d)); 
+                    PenHelper.dotStorage[pageId] = [];
+                }
+            } catch (err) {
+                console.error("Error processing buffered dots:", err);
+            }
+        }, 0);
+    }
+};
+
+PenHelper.dotCallback = handleDot;
+PenHelper.pageCallback = handlePage;
 
 // --- Gemini & Trigger Logic ---
 
