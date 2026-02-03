@@ -139,7 +139,7 @@
             background: #fff;
             border: none;
             color: #000;
-            padding: 14px 20px;
+            padding: 12px 16px;
             border-radius: 8px; 
             font-size: 15px;
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -147,11 +147,29 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
             font-weight: 600;
             transition: transform 0.1s, opacity 0.2s;
-            min-width: 120px;
+            min-width: 100px;
             white-space: nowrap;
+            flex: 0 1 auto;
+        }
+
+        @media (max-width: 480px) {
+            .action-btn {
+                padding: 10px 12px;
+                font-size: 14px;
+                min-width: 80px;
+                gap: 4px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .action-btn {
+                padding: 8px 10px;
+                font-size: 13px;
+                min-width: 70px;
+            }
         }
 
         .action-btn:active {
