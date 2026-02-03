@@ -21,6 +21,22 @@ if (!fs.existsSync(outputDir)){
     fs.mkdirSync(outputDir);
 }
 
+// History Management
+const historyFile = path.join(__dirname, 'history.json');
+let history = [];
+
+if (fs.existsSync(historyFile)) {
+    try {
+        history = JSON.parse(fs.readFileSync(historyFile));
+    } catch (e) {
+        console.error("Failed to load history:", e);
+    }
+}
+
+function saveHistory() {
+    fs.writeFileSync(historyFile, JSON.stringify(history, null, 2));
+}
+
 // Preview Server Setup
 const app = express();
 const server = http.createServer(app);
@@ -31,6 +47,15 @@ app.use('/images', express.static(outputDir));
 
 io.on('connection', (socket) => {
     console.log('Preview client connected');
+    socket.emit('history', history); // Send history on connect
+
+    socket.on('delete_item', (index) => {
+        if (index >= 0 && index < history.length) {
+            history.splice(index, 1);
+            saveHistory();
+            io.emit('history', history); // Broadcast update
+        }
+    });
 });
 
 server.listen(3000, () => {
@@ -364,6 +389,7 @@ PenHelper.dotCallback = (mac, dot) => {
                 definitionPoints.push(...currentStroke.points);
             } else {
                 strokeHistory.push(currentStroke);
+                localStorage.setItem('strokeHistory', JSON.stringify(strokeHistory));
                 checkTriggerRegions(currentStroke);
             }
             
@@ -519,8 +545,20 @@ async function callGemini(mode) {
                             if (err) console.error("Failed to save image:", err);
                             else {
                                 console.log("Image saved to:", filePath);
-                                // Emit to Preview
-                                io.emit('result', { type: 'image', url: `/images/${filename}` });
+                                // Result Object
+                                const resultItem = { 
+                                    type: 'image', 
+                                    url: `/images/${filename}`,
+                                    timestamp: new Date().toISOString()
+                                };
+                                
+                                // Emit result
+                                io.emit('result', resultItem);
+                                
+                                // Save to History
+                                history.push(resultItem);
+                                saveHistory();
+                                io.emit('history', history);
                             }
                         });
                     } else if (part.text) {
@@ -535,8 +573,21 @@ async function callGemini(mode) {
             const text = response.text();
             responseArea.innerText = text;
             statusSpan.innerText = "Response received!";
+            
+            // Result Object
+            const resultItem = { 
+                type: 'text', 
+                content: text,
+                timestamp: new Date().toISOString()
+            };
+            
             // Emit to Preview
-            io.emit('result', { type: 'text', content: text });
+            io.emit('result', resultItem);
+            
+            // Save to History
+            history.push(resultItem);
+            saveHistory();
+            io.emit('history', history);
         }
 
     } catch (error) {

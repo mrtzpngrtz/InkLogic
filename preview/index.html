@@ -2,62 +2,563 @@
 <html>
 <head>
     <title>Gemini Sketch Preview</title>
+    <!-- Viewport for Mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body { background: #000; color: #fff; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        #content { text-align: center; width: 90%; max-width: 800px; height: 90vh; display: flex; flex-direction: column; justify-content: center; }
-        img { max-width: 100%; max-height: 80vh; border: 1px solid #333; object-fit: contain; }
-        #text { font-size: 1.5em; line-height: 1.6; white-space: pre-wrap; text-align: left; background: #111; padding: 30px; border-radius: 10px; }
-        #status { color: #666; margin-bottom: 20px; font-size: 1.2em; text-transform: uppercase; letter-spacing: 2px; }
-        
-        /* Spinner */
-        .loader {
-            border: 6px solid #333;
-            border-top: 6px solid #fff;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-            display: none;
+        body { 
+            background: #000; 
+            color: #fff; 
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; 
+            height: 100dvh; 
+            margin: 0; 
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+            padding: 0;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        #content { 
+            flex: 1; 
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 20px; /* More padding for breathing room */
+            box-sizing: border-box;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* Status / Title Typography */
+        #status { 
+            color: #fff; 
+            font-size: 10vw; 
+            font-weight: 700; 
+            letter-spacing: -0.04em; 
+            line-height: 0.9;
+            text-align: center;
+            width: 100%;
+            transition: opacity 0.3s ease;
+            
+            /* Absolute centering */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+        }
+
+        /* Result Container */
+        #result {
+            flex: 1;
+            width: 100%;
+            min-height: 0; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Result Text Typography - Scaled Down */
+        #text { 
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; 
+            font-size: clamp(18px, 5vw, 40px); /* Balanced size */
+            line-height: 1.4; 
+            font-weight: 400;
+            text-align: left; 
+            white-space: pre-wrap; 
+            width: 100%;
+            max-height: 100%;
+            overflow-y: auto;
+            color: #fff;
+        }
+
+        img { 
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; 
+            display: block; 
+            transition: transform 0.1s linear;
+            transform-origin: center center;
+        }
+
+        /* Metadata (Date/Time) */
+        #meta {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 20px; /* Reasonable mobile size */
+            color: #fff; 
+            margin-top: 20px;
+            font-weight: 700; 
+            text-align: left;
+            width: 100%;
+            padding-left: 5px;
+            letter-spacing: -0.02em; 
+        }
+
+        /* Actions Bar */
+        #actions {
+            display: none; 
+            gap: 15px;
+            margin-top: 20px;
+            z-index: 50;
+            width: 100%;
+            justify-content: flex-start;
+        }
+
+        .action-btn {
+            background: #fff;
+            border: none;
+            color: #000;
+            padding: 15px 30px; /* Standard mobile button padding */
+            border-radius: 6px; 
+            font-size: 18px;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700; 
+            transition: transform 0.1s, background 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+            background: #ddd;
+        }
+
+        .action-btn span {
+            font-weight: normal;
+            font-size: 1.2em; /* Bigger icon */
+        }
+        
+        /* Minimalist Loader */
+        .loader {
+            width: 16px; /* Bigger */
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 40px auto 0;
+            animation: pulse 1s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0.3; transform: scale(1); }
+        }
+
+        /* Gallery - Vertical Slide Out */
+        #gallery {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 180px; /* Standard sidebar width */
+            background: rgba(10, 10, 10, 0.98);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 80px 0 20px 0;
+            box-sizing: border-box;
+            gap: 15px;
+            overflow-y: auto;
+            border-right: 1px solid #333;
+            z-index: 200;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+        }
+
+        #gallery.open {
+            transform: translateX(0);
+        }
+
+        .gallery-item {
+            min-width: 140px;
+            width: 140px;
+            height: 140px;
+            min-height: 140px;
+            background: #222;
+            border: 1px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            flex-shrink: 0;
+            border-radius: 4px;
+            transition: transform 0.2s ease;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border: none;
+            margin: 0;
+            transform: none; 
+        }
+
+        .gallery-item .text-preview {
+            font-size: 16px; /* Bigger preview text */
+            padding: 15px;
+            color: #ccc;
+            line-height: 1.4;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            text-align: left;
+        }
+
+        .gallery-item:active {
+            border-color: #fff;
+        }
+
+        .gallery-date {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            color: #ccc;
+            font-size: 10px;
+            padding: 4px;
+            text-align: center;
+            box-sizing: border-box;
+            font-family: Helvetica, Arial, sans-serif;
+        }
+
+        /* Toggle Button */
+        #toggle-gallery {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 210; 
+            background: rgba(30,30,30,0.8);
+            border: 1px solid #555;
+            color: #fff;
+            width: 50px; /* Comfortable touch size */
+            height: 50px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        #toggle-gallery:hover {
+            background: rgba(60,60,60,0.9);
+        }
+        
+        /* Backdrop */
+        #gallery-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 150;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(2px); /* Nice effect */
+        }
+        
+        #gallery-backdrop.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
     </style>
 </head>
 <body>
+    <div id="gallery-backdrop" onclick="toggleGallery()"></div>
+    <button id="toggle-gallery" onclick="toggleGallery()">☰</button>
+
     <div id="content">
-        <div id="status">Ready</div>
-        <div class="loader" id="loader"></div>
+        <div id="status">InkLogic<br><span style="color: #333;">Ready</span></div>
         <div id="result"></div>
+        <div id="meta"></div> <!-- Timestamp -->
+        <div id="actions">
+            <button class="action-btn delete" onclick="deleteCurrent()">
+                <span>✕</span> Delete
+            </button>
+            <button class="action-btn share" onclick="shareCurrent()">
+                <span>↑</span> Share
+            </button>
+        </div>
     </div>
+    
+    <div id="gallery">
+        <!-- Gallery Items will be injected here -->
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         const statusEl = document.getElementById('status');
         const resultEl = document.getElementById('result');
-        const loader = document.getElementById('loader');
+        const galleryEl = document.getElementById('gallery');
+        const actionsEl = document.getElementById('actions');
+        const metaEl = document.getElementById('meta');
+        const galleryBackdrop = document.getElementById('gallery-backdrop');
+
+        let currentItem = null;
+
+        // History Management
+        let history = [];
+
+        // Listen for history updates from server
+        socket.on('history', (data) => {
+            history = data;
+            renderGallery();
+        });
+        
+        function toggleGallery() {
+            galleryEl.classList.toggle('open');
+            galleryBackdrop.classList.toggle('visible');
+        }
+
+        function renderGallery() {
+            galleryEl.innerHTML = '';
+            history.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'gallery-item';
+                div.onclick = () => {
+                    showItem(item);
+                    toggleGallery(); // Close on selection
+                };
+                
+                if (item.type === 'image') {
+                    div.innerHTML = `<img src="${item.url}">`;
+                } else {
+                    div.innerHTML = `<div class="text-preview">${item.content.replace(/\*\*/g, '').substring(0, 50)}...</div>`;
+                }
+
+                // Add Date
+                if (item.timestamp) {
+                    const dateDiv = document.createElement('div');
+                    dateDiv.className = 'gallery-date';
+                    const d = new Date(item.timestamp);
+                    dateDiv.innerText = d.toLocaleString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        hour: 'numeric', 
+                        minute: '2-digit' 
+                    });
+                    div.appendChild(dateDiv);
+                }
+
+                galleryEl.prepend(div);
+            });
+        }
+
+        function deleteItem(index) {
+            const deletedItem = history[index];
+            
+            // Request deletion from server
+            socket.emit('delete_item', index);
+            
+            // If deleting currently viewed item, clear view
+            // Note: History update will come from server, but we can clear view now
+            if (currentItem && currentItem.timestamp === deletedItem.timestamp) {
+                clearView();
+            }
+        }
+
+        function clearView() {
+            currentItem = null;
+            resultEl.innerHTML = '';
+            metaEl.innerText = '';
+            statusEl.style.display = 'block';
+            statusEl.innerHTML = 'InkLogic<br><span style="color: #333;">Ready</span>';
+            actionsEl.style.display = 'none';
+        }
+
+        function deleteCurrent() {
+            if (!currentItem) return;
+            const index = history.indexOf(currentItem);
+            if (index > -1) {
+                deleteItem(index);
+            }
+        }
+
+        async function shareCurrent() {
+            if (!currentItem) return;
+            
+            try {
+                if (navigator.share) {
+                    if (currentItem.type === 'text') {
+                        await navigator.share({
+                            title: 'InkLogic Text',
+                            text: currentItem.content.replace(/\*\*/g, '')
+                        });
+                    } else if (currentItem.type === 'image') {
+                        // Fetch blob to share file
+                        const response = await fetch(currentItem.url);
+                        const blob = await response.blob();
+                        const file = new File([blob], 'inklogic_sketch.png', { type: 'image/png' });
+                        
+                        await navigator.share({
+                            title: 'InkLogic Sketch',
+                            files: [file]
+                        });
+                    }
+                } else {
+                    alert("System share not available on this device.");
+                }
+            } catch (err) {
+                console.error("Share failed:", err);
+            }
+        }
+
+        function showItem(item) {
+            currentItem = item;
+            statusEl.style.display = 'none';
+            actionsEl.style.display = 'flex';
+
+            // Show Date/Time
+            if (item.timestamp) {
+                const date = new Date(item.timestamp);
+                metaEl.innerText = date.toLocaleString('en-US', { 
+                    weekday: 'short', 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: 'numeric', 
+                    minute: '2-digit' 
+                });
+            } else {
+                metaEl.innerText = '';
+            }
+
+            if (item.type === 'text') {
+                const cleanText = item.content.replace(/\*\*/g, '');
+                resultEl.innerHTML = `<div id="text">${cleanText}</div>`;
+            } else if (item.type === 'image') {
+                resultEl.innerHTML = `<img src="${item.url}">`;
+                resetZoom();
+            }
+        }
+
+        // Initialize Gallery
+        renderGallery();
+
+        // Zoom & Pan Logic
+        let currentScale = 1;
+        let startScale = 1;
+        let initialDist = 0;
+        
+        let translateX = 0;
+        let translateY = 0;
+        let startX = 0;
+        let startY = 0;
+        let lastX = 0;
+        let lastY = 0;
+        let isDragging = false;
+
+        resultEl.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                // Zoom Start
+                e.preventDefault();
+                initialDist = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                startScale = currentScale;
+            } else if (e.touches.length === 1 && currentScale > 1) {
+                // Pan Start
+                e.preventDefault();
+                startX = e.touches[0].pageX;
+                startY = e.touches[0].pageY;
+                lastX = translateX;
+                lastY = translateY;
+                isDragging = true;
+            }
+        }, { passive: false });
+
+        resultEl.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const img = resultEl.querySelector('img');
+            if (!img) return;
+
+            if (e.touches.length === 2) {
+                // Zooming
+                const dist = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                
+                if (initialDist > 0) {
+                    const delta = dist / initialDist;
+                    currentScale = Math.min(Math.max(1, startScale * delta), 5); 
+                    updateTransform(img);
+                }
+            } else if (e.touches.length === 1 && isDragging && currentScale > 1) {
+                // Panning
+                const dx = e.touches[0].pageX - startX;
+                const dy = e.touches[0].pageY - startY;
+                translateX = lastX + dx;
+                translateY = lastY + dy;
+                updateTransform(img);
+            }
+        }, { passive: false });
+        
+        resultEl.addEventListener('touchend', (e) => {
+            isDragging = false;
+        });
+
+        function updateTransform(img) {
+            if (currentScale <= 1) {
+                currentScale = 1;
+                translateX = 0;
+                translateY = 0;
+            }
+            img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+        }
+        
+        function resetZoom() {
+            currentScale = 1;
+            translateX = 0;
+            translateY = 0;
+            const img = resultEl.querySelector('img');
+            if (img) updateTransform(img);
+        }
 
         socket.on('status', (msg) => {
-            statusEl.innerText = msg;
+            statusEl.style.display = 'block';
+            statusEl.style.color = '#666'; // Dim status for updates
+            statusEl.style.fontSize = '8vw'; // Slightly smaller for status messages
+            
+            let html = msg;
             if (msg.toLowerCase().includes('thinking') || msg.toLowerCase().includes('generating')) {
-                loader.style.display = 'block';
-                resultEl.style.opacity = '0.3'; // Dim previous result
+                html += '<br><div class="loader"></div>';
+                resultEl.style.opacity = '0.2';
             } else {
-                loader.style.display = 'none';
                 resultEl.style.opacity = '1';
             }
+            statusEl.innerHTML = html;
         });
 
         socket.on('result', (data) => {
-            loader.style.display = 'none';
+            // loader hidden implied by status change
             resultEl.style.opacity = '1';
-            if (data.type === 'text') {
-                resultEl.innerHTML = `<div id="text">${data.content}</div>`;
-                statusEl.innerText = "Response";
-            } else if (data.type === 'image') {
-                // Add timestamp to prevent caching
-                resultEl.innerHTML = `<img src="${data.url}?t=${Date.now()}">`;
-                statusEl.innerText = "Generated Image";
-            }
+            
+            // Note: Server adds timestamp and saves to history.
+            // We just show it immediately.
+            // Gallery will update via 'history' event.
+
+            // Show immediately
+            showItem(data);
         });
     </script>
 </body>
