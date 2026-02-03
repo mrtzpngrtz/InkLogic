@@ -21,48 +21,7 @@ if (!fs.existsSync(outputDir)){
     fs.mkdirSync(outputDir);
 }
 
-// History Management
-const historyFile = path.join(__dirname, 'history.json');
-let history = [];
-
-if (fs.existsSync(historyFile)) {
-    try {
-        history = JSON.parse(fs.readFileSync(historyFile));
-    } catch (e) {
-        console.error("Failed to load history:", e);
-    }
-}
-
-function saveHistory() {
-    fs.writeFileSync(historyFile, JSON.stringify(history, null, 2));
-}
-
-// Preview Server Setup
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
-
-app.use(express.static(path.join(__dirname, 'preview')));
-app.use('/images', express.static(outputDir));
-
-io.on('connection', (socket) => {
-    console.log('Preview client connected');
-    socket.emit('history', history); // Send history on connect
-
-    socket.on('delete_item', (index) => {
-        if (index >= 0 && index < history.length) {
-            history.splice(index, 1);
-            saveHistory();
-            io.emit('history', history); // Broadcast update
-        }
-    });
-});
-
-server.listen(3000, () => {
-    console.log('Preview server running on http://localhost:3000');
-});
-
-// UI Elements
+// --- UI Elements ---
 const connectBtn = document.getElementById('connectBtn');
 const clearBtn = document.getElementById('clearBtn');
 const statusSpan = document.getElementById('status');
@@ -88,50 +47,7 @@ const settingsBtn = document.getElementById('settingsBtn');
 const settingsModal = document.getElementById('settings-modal');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 
-// Settings Logic
-settingsBtn.addEventListener('click', () => {
-    settingsModal.classList.remove('hidden');
-});
-
-closeSettingsBtn.addEventListener('click', () => {
-    settingsModal.classList.add('hidden');
-});
-
-settingsModal.addEventListener('click', (e) => {
-    if (e.target === settingsModal) {
-        settingsModal.classList.add('hidden');
-    }
-});
-
-// Clear Output Logic
-clearOutputBtn.addEventListener('click', () => {
-    generatedImage.style.display = 'none';
-    responseArea.innerText = '';
-    responseArea.style.display = 'none';
-    placeholderText.style.display = 'block';
-    statusSpan.innerText = "Output cleared";
-});
-
-// Load saved prompts
-const savedTextPrompt = localStorage.getItem('geminiTextPrompt');
-if (savedTextPrompt) {
-    textPromptInput.value = savedTextPrompt;
-}
-
-textPromptInput.addEventListener('input', () => {
-    localStorage.setItem('geminiTextPrompt', textPromptInput.value);
-});
-
-const savedImagePrompt = localStorage.getItem('geminiImagePrompt');
-if (savedImagePrompt) {
-    imagePromptInput.value = savedImagePrompt;
-}
-
-imagePromptInput.addEventListener('input', () => {
-    localStorage.setItem('geminiImagePrompt', imagePromptInput.value);
-});
-
-// State - FIXED COORDINATES based on user feedback
+// --- State ---
 let paperSize = { 
     Xmin: 0, 
     Xmax: 61, 
@@ -152,7 +68,9 @@ let triggerRegion = null; // Text
 let imageTriggerRegion = null; // Image
 
 let lastTriggerTime = 0;
-const TRIGGER_COOLDOWN = 5000; // 5 seconds cooldown
+const TRIGGER_COOLDOWN = 2000; // Reduced to 2 seconds
+
+// --- Initialization & Persistence ---
 
 // Load saved trigger regions
 const savedRegion = localStorage.getItem('triggerRegion');
@@ -170,7 +88,30 @@ if (savedImageRegion) {
     imageTriggerRegion = { xMin: 40, xMax: 50, yMin: 80, yMax: 88 };
 }
 
-// Canvas resizing
+// Load saved prompts
+const savedTextPrompt = localStorage.getItem('geminiTextPrompt');
+if (savedTextPrompt) textPromptInput.value = savedTextPrompt;
+
+const savedImagePrompt = localStorage.getItem('geminiImagePrompt');
+if (savedImagePrompt) imagePromptInput.value = savedImagePrompt;
+
+// Save prompts listeners
+textPromptInput.addEventListener('input', () => {
+    localStorage.setItem('geminiTextPrompt', textPromptInput.value);
+});
+imagePromptInput.addEventListener('input', () => {
+    localStorage.setItem('geminiImagePrompt', imagePromptInput.value);
+});
+
+// Load API Key
+const savedKey = localStorage.getItem('geminiApiKey');
+if (savedKey) apiKeyInput.value = savedKey;
+
+apiKeyInput.addEventListener('input', () => {
+    localStorage.setItem('geminiApiKey', apiKeyInput.value);
+});
+
+// Canvas resizing and restoring history
 function resizeCanvas() {
     const rect = canvas.parentElement.getBoundingClientRect();
     canvas.width = rect.width;
@@ -179,42 +120,79 @@ function resizeCanvas() {
     updateOverlays();
 }
 
-function updateOverlays() {
-    updateOverlay(checkboxOverlay, triggerRegion, isDefiningBox, "Text");
-    updateOverlay(imageTriggerOverlay, imageTriggerRegion, isDefiningImageBox, "Image");
-}
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('load', () => {
+    resizeCanvas();
+    setTimeout(resizeCanvas, 100);
 
-function updateOverlay(element, region, isDefining, label) {
-    if (!region) {
-        element.style.display = 'none';
-        return;
+    // Load saved sketch - CRITICAL for persistence
+    try {
+        const savedHistory = localStorage.getItem('strokeHistory');
+        if (savedHistory) {
+            strokeHistory = JSON.parse(savedHistory);
+            console.log("Loaded stroke history:", strokeHistory.length, "strokes");
+            redrawAll();
+        } else {
+            console.log("No saved stroke history found.");
+        }
+    } catch (e) {
+        console.error("Error loading stroke history:", e);
     }
+});
 
-    const coords = mapToScreen(region.xMin, region.yMin);
-    const coordsMax = mapToScreen(region.xMax, region.yMax);
-    
-    const left = Math.min(coords.x, coordsMax.x);
-    const top = Math.min(coords.y, coordsMax.y);
-    const width = Math.abs(coordsMax.x - coords.x);
-    const height = Math.abs(coordsMax.y - coords.y);
-    
-    element.style.left = `${left}px`;
-    element.style.top = `${top}px`;
-    element.style.width = `${width}px`;
-    element.style.height = `${height}px`;
-    element.style.display = 'block';
-    
-    const labelDiv = element.querySelector('div');
-    if (isDefining) {
-        element.style.borderColor = '#ff0000';
-        labelDiv.innerText = "Draw Here";
-        labelDiv.style.background = 'rgba(255, 0, 0, 0.2)';
-    } else {
-        element.style.borderColor = label === 'Text' ? '#00ff00' : '#0088ff';
-        labelDiv.innerText = label;
-        labelDiv.style.background = label === 'Text' ? 'rgba(0, 255, 0, 0.2)' : 'rgba(0, 136, 255, 0.2)';
+// --- Server & Preview History ---
+
+// History Management (Server Side)
+const historyFile = path.join(__dirname, 'history.json');
+let history = [];
+
+if (fs.existsSync(historyFile)) {
+    try {
+        history = JSON.parse(fs.readFileSync(historyFile));
+    } catch (e) {
+        console.error("Failed to load server history:", e);
     }
 }
+
+function saveHistory() {
+    fs.writeFileSync(historyFile, JSON.stringify(history, null, 2));
+}
+
+// Preview Server Setup
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+app.use(express.static(path.join(__dirname, 'preview')));
+app.use('/images', express.static(outputDir));
+
+io.on('connection', (socket) => {
+    console.log('Preview client connected');
+    socket.emit('history', history); 
+
+    socket.on('delete_item', (index) => {
+        if (index >= 0 && index < history.length) {
+            history.splice(index, 1);
+            saveHistory();
+            io.emit('history', history);
+        }
+    });
+});
+
+// Start Server with Error Handling
+server.on('error', (e) => {
+    console.error('Preview Server Error (likely port in use):', e);
+});
+
+try {
+    server.listen(3000, () => {
+        console.log('Preview server running on http://localhost:3000');
+    });
+} catch (e) {
+    console.error("Failed to start preview server:", e);
+}
+
+// --- Drawing Logic ---
 
 function mapToScreen(x, y) {
     const view = { width: canvas.width, height: canvas.height };
@@ -266,65 +244,70 @@ function drawStroke(stroke) {
     ctx.stroke();
 }
 
-window.addEventListener('resize', resizeCanvas);
-window.addEventListener('load', () => {
-    resizeCanvas();
-    setTimeout(resizeCanvas, 100);
-});
-
-// Definition Logic
-let definitionPoints = [];
-
-function toggleDefinition(type) {
-    const isText = type === 'text';
-    
-    // If starting one definition, stop the other
-    if (isText) isDefiningImageBox = false;
-    else isDefiningBox = false;
-
-    let isDefining = isText ? isDefiningBox : isDefiningImageBox;
-    const btn = isText ? defineBoxBtn : defineImageBoxBtn;
-    
-    if (!isDefining) {
-        // Start
-        if (isText) isDefiningBox = true; else isDefiningImageBox = true;
-        definitionPoints = [];
-        btn.innerText = "Finish Defining";
-        btn.classList.add('active');
-        statusSpan.innerText = `Draw the ${type} trigger area on paper, then click Finish.`;
-    } else {
-        // Finish
-        if (isText) isDefiningBox = false; else isDefiningImageBox = false;
-        btn.innerText = isText ? "Define Text Box" : "Define Image Box";
-        btn.classList.remove('active');
-        
-        if (definitionPoints.length > 0) {
-            const xs = definitionPoints.map(p => p.x);
-            const ys = definitionPoints.map(p => p.y);
-            const region = {
-                xMin: Math.min(...xs) - 0.05,
-                xMax: Math.max(...xs) + 0.05,
-                yMin: Math.min(...ys) - 0.05,
-                yMax: Math.max(...ys) + 0.05
-            };
-            
-            if (isText) {
-                triggerRegion = region;
-                localStorage.setItem('triggerRegion', JSON.stringify(triggerRegion));
-            } else {
-                imageTriggerRegion = region;
-                localStorage.setItem('imageTriggerRegion', JSON.stringify(imageTriggerRegion));
-            }
-            statusSpan.innerText = `${type} trigger box saved!`;
-        } else {
-            statusSpan.innerText = "No drawing detected. Trigger box unchanged.";
-        }
-    }
-    updateOverlays();
+function updateOverlays() {
+    updateOverlay(checkboxOverlay, triggerRegion, isDefiningBox, "Text");
+    updateOverlay(imageTriggerOverlay, imageTriggerRegion, isDefiningImageBox, "Image");
 }
 
-defineBoxBtn.addEventListener('click', () => toggleDefinition('text'));
-defineImageBoxBtn.addEventListener('click', () => toggleDefinition('image'));
+function updateOverlay(element, region, isDefining, label) {
+    if (!region) {
+        element.style.display = 'none';
+        return;
+    }
+
+    const coords = mapToScreen(region.xMin, region.yMin);
+    const coordsMax = mapToScreen(region.xMax, region.yMax);
+    
+    const left = Math.min(coords.x, coordsMax.x);
+    const top = Math.min(coords.y, coordsMax.y);
+    const width = Math.abs(coordsMax.x - coords.x);
+    const height = Math.abs(coordsMax.y - coords.y);
+    
+    element.style.left = `${left}px`;
+    element.style.top = `${top}px`;
+    element.style.width = `${width}px`;
+    element.style.height = `${height}px`;
+    element.style.display = 'block';
+    
+    const labelDiv = element.querySelector('div');
+    if (isDefining) {
+        element.style.borderColor = '#ff0000';
+        labelDiv.innerText = "Draw Here";
+        labelDiv.style.background = 'rgba(255, 0, 0, 0.2)';
+    } else {
+        element.style.borderColor = label === 'Text' ? '#00ff00' : '#0088ff';
+        labelDiv.innerText = label;
+        labelDiv.style.background = label === 'Text' ? 'rgba(0, 255, 0, 0.2)' : 'rgba(0, 136, 255, 0.2)';
+    }
+}
+
+// --- Interaction Logic ---
+
+// Clear Canvas
+clearBtn.addEventListener('click', () => {
+    strokeHistory = [];
+    currentStroke = null;
+    localStorage.removeItem('strokeHistory');
+    redrawAll();
+    generatedImage.style.display = 'none';
+    placeholderText.style.display = 'block';
+    responseArea.style.display = 'none';
+});
+
+// Settings Logic
+settingsBtn.addEventListener('click', () => {
+    settingsModal.classList.remove('hidden');
+});
+
+closeSettingsBtn.addEventListener('click', () => {
+    settingsModal.classList.add('hidden');
+});
+
+settingsModal.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+        settingsModal.classList.add('hidden');
+    }
+});
 
 // Pen Connection
 connectBtn.addEventListener('click', async () => {
@@ -354,7 +337,6 @@ PenHelper.messageCallback = (mac, type, args) => {
 PenHelper.dotCallback = (mac, dot) => {
     if (dot.x <= 0.1 && dot.y <= 0.1) return;
 
-    // Update Debug Info
     debugInfo.innerText = `Last Pen: x=${dot.x.toFixed(4)}, y=${dot.y.toFixed(4)}`;
 
     const screen = mapToScreen(dot.x, dot.y);
@@ -389,6 +371,7 @@ PenHelper.dotCallback = (mac, dot) => {
                 definitionPoints.push(...currentStroke.points);
             } else {
                 strokeHistory.push(currentStroke);
+                // SAVE STROKE HISTORY - Critical for persistence
                 localStorage.setItem('strokeHistory', JSON.stringify(strokeHistory));
                 checkTriggerRegions(currentStroke);
             }
@@ -400,7 +383,11 @@ PenHelper.dotCallback = (mac, dot) => {
     }
 };
 
+// --- Gemini & Trigger Logic ---
+
 function checkTriggerRegions(stroke) {
+    if (!stroke || !stroke.points || stroke.points.length === 0) return;
+
     // Check cooldown
     const now = Date.now();
     if (now - lastTriggerTime < TRIGGER_COOLDOWN) {
@@ -409,11 +396,13 @@ function checkTriggerRegions(stroke) {
     }
 
     const lastP = stroke.points[stroke.points.length - 1];
+    console.log("Checking trigger at:", lastP.x, lastP.y);
     
     // Check Text Region
     if (triggerRegion && isInside(lastP, triggerRegion)) {
         console.log("Text trigger detected!");
         statusSpan.innerText = "Text trigger detected! Sending to Gemini...";
+        flashOverlay('checkbox-overlay');
         lastTriggerTime = now;
         callGemini('text');
         return;
@@ -423,6 +412,7 @@ function checkTriggerRegions(stroke) {
     if (imageTriggerRegion && isInside(lastP, imageTriggerRegion)) {
         console.log("Image trigger detected!");
         statusSpan.innerText = "Image trigger detected! Generating Image...";
+        flashOverlay('image-trigger-overlay');
         lastTriggerTime = now;
         callGemini('image');
         return;
@@ -430,21 +420,22 @@ function checkTriggerRegions(stroke) {
 }
 
 function isInside(p, region) {
+    if (!p || !region) return false;
     return (p.x >= region.xMin && p.x <= region.xMax &&
             p.y >= region.yMin && p.y <= region.yMax);
 }
 
-// Clear Canvas
-clearBtn.addEventListener('click', () => {
-    strokeHistory = [];
-    currentStroke = null;
-    redrawAll();
-    generatedImage.style.display = 'none';
-    placeholderText.style.display = 'block';
-    responseArea.style.display = 'none';
-});
+function flashOverlay(elementId) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        const originalBg = el.querySelector('div').style.background;
+        el.querySelector('div').style.background = 'rgba(255, 255, 255, 0.5)';
+        setTimeout(() => {
+            el.querySelector('div').style.background = originalBg;
+        }, 500);
+    }
+}
 
-// Gemini Integration
 sendBtn.addEventListener('click', () => callGemini('text'));
 genImageBtn.addEventListener('click', () => callGemini('image'));
 
@@ -464,7 +455,7 @@ async function callGemini(mode) {
     responseArea.style.display = 'block';
     responseArea.innerText = "Thinking...";
 
-    // Get prompt from settings
+    // Get prompt
     let prompt;
     if (mode === 'image') {
         prompt = imagePromptInput.value;
@@ -472,23 +463,17 @@ async function callGemini(mode) {
         prompt = textPromptInput.value;
     }
 
-    // Show prompt in UI
     responsePreview.innerText = `Sending: ${prompt}`;
     responseArea.innerText = `[${mode.toUpperCase()}] Sending Prompt:\n"${prompt}"\n\nThinking...`;
     
-    // Notify Preview
     io.emit('status', `Generating ${mode === 'image' ? 'Image' : 'Response'}...`);
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        
         const modelName = mode === 'image' ? 'gemini-3-pro-image-preview' : 'gemini-3-pro-preview';
-        const model = genAI.getGenerativeModel({ 
-            model: modelName,
-            apiVersion: "v1beta"
-        });
+        const model = genAI.getGenerativeModel({ model: modelName, apiVersion: "v1beta" });
         
-        // Invert colors
+        // Export Canvas
         const exportCanvas = document.createElement('canvas');
         exportCanvas.width = canvas.width;
         exportCanvas.height = canvas.height;
@@ -513,6 +498,15 @@ async function callGemini(mode) {
 
         const dataUrl = exportCanvas.toDataURL("image/png");
         const base64Data = dataUrl.split(',')[1];
+        
+        // Save Input Sketch
+        const timestampId = new Date().toISOString().replace(/[:.]/g, '-');
+        const inputFilename = `input_${timestampId}.png`;
+        const inputFilePath = path.join(outputDir, inputFilename);
+        fs.writeFile(inputFilePath, base64Data, 'base64', (err) => {
+            if (err) console.error("Failed to save input sketch:", err);
+        });
+        const inputUrl = `/images/${inputFilename}`;
 
         const imagePart = {
             inlineData: {
@@ -525,7 +519,7 @@ async function callGemini(mode) {
         const response = await result.response;
         
         if (mode === 'image') {
-            if (response.candidates && response.candidates[0] && response.candidates[0].content && response.candidates[0].content.parts) {
+            if (response.candidates && response.candidates[0]?.content?.parts) {
                 const parts = response.candidates[0].content.parts;
                 let foundImage = false;
                 for (const part of parts) {
@@ -534,10 +528,9 @@ async function callGemini(mode) {
                         const mime = part.inlineData.mimeType || 'image/png';
                         generatedImage.src = `data:${mime};base64,${imgData}`;
                         generatedImage.style.display = 'block';
-                        responseArea.style.display = 'none'; // Hide text area if image found
+                        responseArea.style.display = 'none';
                         foundImage = true;
                         
-                        // Save Image
                         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
                         const filename = `image_${timestamp}.png`;
                         const filePath = path.join(outputDir, filename);
@@ -545,17 +538,13 @@ async function callGemini(mode) {
                             if (err) console.error("Failed to save image:", err);
                             else {
                                 console.log("Image saved to:", filePath);
-                                // Result Object
                                 const resultItem = { 
                                     type: 'image', 
                                     url: `/images/${filename}`,
+                                    inputUrl: inputUrl,
                                     timestamp: new Date().toISOString()
                                 };
-                                
-                                // Emit result
                                 io.emit('result', resultItem);
-                                
-                                // Save to History
                                 history.push(resultItem);
                                 saveHistory();
                                 io.emit('history', history);
@@ -573,18 +562,13 @@ async function callGemini(mode) {
             const text = response.text();
             responseArea.innerText = text;
             statusSpan.innerText = "Response received!";
-            
-            // Result Object
             const resultItem = { 
                 type: 'text', 
                 content: text,
+                inputUrl: inputUrl,
                 timestamp: new Date().toISOString()
             };
-            
-            // Emit to Preview
             io.emit('result', resultItem);
-            
-            // Save to History
             history.push(resultItem);
             saveHistory();
             io.emit('history', history);
@@ -644,13 +628,3 @@ function showDevicePicker(devices) {
     };
     picker.appendChild(cancelBtn);
 }
-
-// Save/Load API Key
-const savedKey = localStorage.getItem('geminiApiKey');
-if (savedKey) {
-    apiKeyInput.value = savedKey;
-}
-
-apiKeyInput.addEventListener('input', () => {
-    localStorage.setItem('geminiApiKey', apiKeyInput.value);
-});

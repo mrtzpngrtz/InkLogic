@@ -17,6 +17,19 @@
             padding: 0;
         }
 
+        /* Header for Controls */
+        #header {
+            width: 100%;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            box-sizing: border-box;
+            z-index: 210;
+            background: transparent; /* Or semi-transparent if needed */
+        }
+
         #content { 
             flex: 1; 
             width: 100%;
@@ -26,7 +39,7 @@
             justify-content: center;
             align-items: center;
             position: relative;
-            padding: 20px; /* More padding for breathing room */
+            padding: 10px 20px; /* Padding for content */
             box-sizing: border-box;
             min-height: 0;
             overflow: hidden;
@@ -58,7 +71,7 @@
             min-height: 0; 
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Align content to top */
             overflow: hidden;
             position: relative;
         }
@@ -102,33 +115,36 @@
         /* Actions Bar */
         #actions {
             display: none; 
-            gap: 15px;
+            gap: 10px;
             margin-top: 20px;
             z-index: 50;
             width: 100%;
-            justify-content: flex-start;
+            justify-content: space-between;
+            flex-wrap: nowrap; /* Force single row */
         }
 
         .action-btn {
             background: #fff;
             border: none;
             color: #000;
-            padding: 15px 30px; /* Standard mobile button padding */
-            border-radius: 6px; 
-            font-size: 18px;
+            padding: 12px 5px;
+            border-radius: 4px; 
+            font-size: 14px;
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-weight: 700; 
-            transition: transform 0.1s, background 0.2s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            justify-content: center;
+            gap: 6px;
+            font-weight: 700; /* Bold */
+            transition: transform 0.1s, opacity 0.2s;
+            flex: 1; /* Distribute space evenly */
+            white-space: nowrap;
         }
 
         .action-btn:active {
-            transform: scale(0.95);
-            background: #ddd;
+            opacity: 0.8;
+            transform: scale(0.98);
         }
 
         .action-btn span {
@@ -237,27 +253,40 @@
 
         /* Toggle Button */
         #toggle-gallery {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 210; 
-            background: rgba(30,30,30,0.8);
-            border: 1px solid #555;
+            /* Removed absolute positioning */
+            background: transparent;
+            border: none;
             color: #fff;
-            width: 50px; /* Comfortable touch size */
+            width: 50px;
             height: 50px;
-            border-radius: 50%;
-            font-size: 24px;
+            font-size: 30px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: opacity 0.2s;
+            padding: 0;
         }
         
-        #toggle-gallery:hover {
-            background: rgba(60,60,60,0.9);
+        #toggle-gallery:active {
+            opacity: 0.7;
+        }
+        
+        /* Close Button */
+        #close-view {
+            /* Removed absolute positioning */
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 30px;
+            cursor: pointer;
+            padding: 10px;
+            transition: color 0.2s;
+            display: none; /* Controlled via JS */
+        }
+        
+        #close-view:hover {
+            color: #fff;
         }
         
         /* Backdrop */
@@ -283,18 +312,26 @@
 </head>
 <body>
     <div id="gallery-backdrop" onclick="toggleGallery()"></div>
-    <button id="toggle-gallery" onclick="toggleGallery()">☰</button>
+    
+    <!-- Header with controls -->
+    <div id="header">
+        <button id="toggle-gallery" onclick="toggleGallery()">☰</button>
+        <button id="close-view" onclick="clearView()">✕</button>
+    </div>
 
     <div id="content">
         <div id="status">InkLogic<br><span style="color: #333;">Ready</span></div>
         <div id="result"></div>
         <div id="meta"></div> <!-- Timestamp -->
         <div id="actions">
-            <button class="action-btn delete" onclick="deleteCurrent()">
+            <button class="action-btn" onclick="deleteCurrent()">
                 <span>✕</span> Delete
             </button>
-            <button class="action-btn share" onclick="shareCurrent()">
-                <span>↑</span> Share
+            <button class="action-btn secondary-action" onclick="secondaryAction()">
+                <span>↓</span> Download
+            </button>
+            <button class="action-btn toggle-input" onclick="toggleInput()" style="display:none;">
+                <span>👁</span> Input
             </button>
         </div>
     </div>
@@ -314,6 +351,7 @@
         const galleryBackdrop = document.getElementById('gallery-backdrop');
 
         let currentItem = null;
+        let showingInput = false;
 
         // History Management
         let history = [];
@@ -327,6 +365,13 @@
         function toggleGallery() {
             galleryEl.classList.toggle('open');
             galleryBackdrop.classList.toggle('visible');
+            
+            const btn = document.getElementById('toggle-gallery');
+            if (galleryEl.classList.contains('open')) {
+                btn.innerHTML = '✕';
+            } else {
+                btn.innerHTML = '☰';
+            }
         }
 
         function renderGallery() {
@@ -365,12 +410,7 @@
 
         function deleteItem(index) {
             const deletedItem = history[index];
-            
-            // Request deletion from server
             socket.emit('delete_item', index);
-            
-            // If deleting currently viewed item, clear view
-            // Note: History update will come from server, but we can clear view now
             if (currentItem && currentItem.timestamp === deletedItem.timestamp) {
                 clearView();
             }
@@ -383,6 +423,7 @@
             statusEl.style.display = 'block';
             statusEl.innerHTML = 'InkLogic<br><span style="color: #333;">Ready</span>';
             actionsEl.style.display = 'none';
+            document.getElementById('close-view').style.display = 'none';
         }
 
         function deleteCurrent() {
@@ -393,39 +434,75 @@
             }
         }
 
-        async function shareCurrent() {
+        async function secondaryAction() {
             if (!currentItem) return;
             
             try {
-                if (navigator.share) {
-                    if (currentItem.type === 'text') {
-                        await navigator.share({
-                            title: 'InkLogic Text',
-                            text: currentItem.content.replace(/\*\*/g, '')
-                        });
-                    } else if (currentItem.type === 'image') {
-                        // Fetch blob to share file
-                        const response = await fetch(currentItem.url);
-                        const blob = await response.blob();
-                        const file = new File([blob], 'inklogic_sketch.png', { type: 'image/png' });
-                        
-                        await navigator.share({
-                            title: 'InkLogic Sketch',
-                            files: [file]
-                        });
+                if (currentItem.type === 'text') {
+                    // COPY TEXT
+                    const text = currentItem.content.replace(/\*\*/g, '');
+                    
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(text);
+                    } else {
+                        fallbackCopyText(text);
                     }
-                } else {
-                    alert("System share not available on this device.");
+                    
+                    // Visual feedback
+                    const btn = document.querySelector('.secondary-action');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<span>✓</span> Copied';
+                    setTimeout(() => btn.innerHTML = originalText, 1500);
+                    
+                } else if (currentItem.type === 'image') {
+                    // DOWNLOAD IMAGE
+                    let filename = 'inklogic_generated.png';
+                    if (currentItem.timestamp) {
+                        const date = new Date(currentItem.timestamp);
+                        const dateStr = date.toISOString().replace(/[:.]/g, '-').slice(0, 16).replace('T', '_');
+                        filename = `inklogic_${dateStr}.png`;
+                    }
+
+                    const a = document.createElement('a');
+                    a.href = currentItem.url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
                 }
             } catch (err) {
-                console.error("Share failed:", err);
+                console.error("Action failed:", err);
+                alert("Action failed: " + err.message);
             }
+        }
+        
+        function fallbackCopyText(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (!successful) throw new Error('Copy command failed');
+            } catch (err) {
+                console.error('Fallback copy failed', err);
+                throw err;
+            }
+            
+            document.body.removeChild(textArea);
         }
 
         function showItem(item) {
             currentItem = item;
+            showingInput = false;
             statusEl.style.display = 'none';
             actionsEl.style.display = 'flex';
+            document.getElementById('close-view').style.display = 'block';
 
             // Show Date/Time
             if (item.timestamp) {
@@ -440,7 +517,46 @@
             } else {
                 metaEl.innerText = '';
             }
+            
+            // Secondary Button (Copy/Download)
+            const secBtn = document.querySelector('.secondary-action');
+            if (item.type === 'text') {
+                secBtn.innerHTML = '<span>📋</span> Copy';
+            } else {
+                secBtn.innerHTML = '<span>↓</span> Download';
+            }
+            
+            // View Input Button
+            const toggleBtn = document.querySelector('.toggle-input');
+            if (item.inputUrl) {
+                toggleBtn.style.display = 'flex';
+                toggleBtn.innerHTML = '<span>👁</span> Input';
+            } else {
+                toggleBtn.style.display = 'none';
+            }
 
+            renderContent(item);
+        }
+        
+        function toggleInput() {
+            if (!currentItem || !currentItem.inputUrl) return;
+            const toggleBtn = document.querySelector('.toggle-input');
+            
+            showingInput = !showingInput;
+            
+            if (showingInput) {
+                // Show Input (Invert for Dark Mode)
+                resultEl.innerHTML = `<img src="${currentItem.inputUrl}" style="filter: invert(1);">`;
+                resetZoom();
+                toggleBtn.innerHTML = '<span>🖼</span> Output';
+            } else {
+                // Show Output
+                renderContent(currentItem);
+                toggleBtn.innerHTML = '<span>👁</span> Input';
+            }
+        }
+        
+        function renderContent(item) {
             if (item.type === 'text') {
                 const cleanText = item.content.replace(/\*\*/g, '');
                 resultEl.innerHTML = `<div id="text">${cleanText}</div>`;
