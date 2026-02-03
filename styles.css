@@ -1,21 +1,19 @@
+/* InkLogic Main App Styles */
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #1e1e1e;
-    color: #e0e0e0;
+    font-family: var(--font-system);
     display: flex;
     flex-direction: column;
     height: 100vh;
 }
 
 #toolbar {
-    padding: 10px;
-    background-color: #2d2d2d;
+    padding: var(--spacing-sm);
+    background-color: var(--color-bg-elevated);
     display: flex;
-    gap: 10px;
+    gap: var(--spacing-sm);
     align-items: center;
-    border-bottom: 1px solid #3d3d3d;
+    border-bottom: 1px solid var(--color-border);
 }
 
 #canvas-container {
@@ -25,57 +23,35 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #121212;
+    background-color: var(--color-bg-canvas);
 }
 
 canvas {
-    background-color: #121212;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    background-color: var(--color-bg-canvas);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 #gemini-panel {
     width: 300px;
-    background-color: #252526;
-    border-left: 1px solid #3d3d3d;
-    padding: 15px;
+    background-color: var(--color-bg-tertiary);
+    border-left: 1px solid var(--color-border);
+    padding: var(--spacing-md);
     display: flex;
     flex-direction: column;
-    gap: 10px;
-}
-
-.hidden {
-    display: none !important;
-}
-
-input, textarea, button {
-    background-color: #3c3c3c;
-    border: 1px solid #3d3d3d;
-    color: #e0e0e0;
-    padding: 8px;
-    border-radius: 4px;
-}
-
-button:hover {
-    background-color: #4c4c4c;
-    cursor: pointer;
-}
-
-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    gap: var(--spacing-sm);
 }
 
 #response-area {
     flex: 1;
-    background-color: #1e1e1e;
-    padding: 20px;
-    border-radius: 4px;
+    background-color: var(--color-bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-sm);
     overflow-y: auto;
     white-space: pre-wrap;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-family: var(--font-primary);
     font-size: 1.2em;
     line-height: 1.6;
-    color: #e0e0e0;
+    color: var(--color-text-secondary);
 }
 
 /* Device Picker Modal */
@@ -84,11 +60,11 @@ button:disabled {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #252526;
-    border: 1px solid #3d3d3d;
-    padding: 20px;
+    background-color: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    padding: var(--spacing-lg);
     z-index: 1000;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     max-height: 300px;
     overflow-y: auto;
 }
@@ -99,73 +75,28 @@ button:disabled {
 }
 
 #device-picker li {
-    padding: 10px;
-    border-bottom: 1px solid #3d3d3d;
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--color-border);
     cursor: pointer;
+    transition: background-color var(--transition-normal);
 }
 
 #device-picker li:hover {
-    background-color: #3c3c3c;
+    background-color: var(--color-bg-input);
 }
 
-/* Modal Styles */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal.hidden {
-    display: none !important;
-}
-
+/* Settings Modal */
 .modal-content {
-    background-color: #252526;
-    border: 1px solid #3d3d3d;
-    padding: 20px;
     width: 400px;
-    max-width: 90%;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #3d3d3d;
-    padding-bottom: 10px;
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.2em;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    color: #e0e0e0;
-    font-size: 1.5em;
-    cursor: pointer;
-    padding: 0 5px;
 }
 
 .setting-group {
-    margin-bottom: 20px;
+    margin-bottom: var(--spacing-lg);
 }
 
 .setting-group h3 {
     margin-top: 0;
     font-size: 1em;
-    color: #aaa;
-    margin-bottom: 10px;
+    color: var(--color-text-muted);
+    margin-bottom: var(--spacing-sm);
 }
