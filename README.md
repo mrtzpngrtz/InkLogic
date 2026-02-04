@@ -1,6 +1,6 @@
-# InkLogic Android App
+# InkLogic
 
-An Android port of InkLogic using Capacitor - Connect your Neo Smartpen to Gemini AI.
+Work in progress prototype connecting paper Smartpen Notebooks to generative AI.
 
 ![InkLogic Screenshot](screenshot.png)
 
@@ -181,11 +181,10 @@ npm run build
 
 ## License
 
-This project is based on [InkLogic](https://github.com/mrtzpngrtz/InkLogic) by mrtzpngrtz.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Credits
 
-- Original InkLogic application
 - Capacitor by Ionic
 - web_pen_sdk for Neo Smartpen integration
 - Google Gemini API
