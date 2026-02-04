@@ -2,6 +2,8 @@
 
 An Android port of InkLogic using Capacitor - Connect your Neo Smartpen to Gemini AI.
 
+![InkLogic Screenshot](screenshot.png)
+
 ## Overview
 
 This is a native Android application built with Capacitor that allows you to:
