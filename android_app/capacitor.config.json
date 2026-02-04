@@ -1,0 +1,11 @@
+{
+  "appId": "com.inklogic.app",
+  "appName": "InkLogic",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

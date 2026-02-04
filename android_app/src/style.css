@@ -1,0 +1,481 @@
+/* InkLogic Android App Styles */
+body { 
+    background: #000; 
+    color: #fff; 
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; 
+    height: 100dvh; 
+    margin: 0; 
+    overflow: hidden; 
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+/* Header for Controls */
+#header {
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    box-sizing: border-box;
+    z-index: 210;
+    background: transparent;
+}
+
+#header button {
+    background: transparent;
+    border: none;
+    color: #fff;
+    width: 50px;
+    height: 50px;
+    font-size: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+    padding: 0;
+}
+
+#header button:active {
+    opacity: 0.7;
+}
+
+#close-view {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+#close-view:hover {
+    color: #fff;
+}
+
+#content { 
+    flex: 1; 
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-sizing: border-box;
+    min-height: 0;
+    overflow: hidden;
+    z-index: 10;
+}
+
+/* Status / Title Typography */
+#status { 
+    color: #fff; 
+    font-size: 10vw; 
+    font-weight: 700; 
+    letter-spacing: -0.04em; 
+    line-height: 0.9;
+    text-align: center;
+    width: 100%;
+    transition: opacity 0.3s ease;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+}
+
+/* Result Container */
+#result {
+    flex: 1;
+    width: 100%;
+    min-height: 0; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    overflow-y: auto; 
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+    position: relative;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Result Text Typography */
+#result .text-content { 
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; 
+    font-size: clamp(20px, 6vw, 32px);
+    line-height: 1.6; 
+    font-weight: 400;
+    text-align: left; 
+    white-space: pre-wrap; 
+    width: 100%;
+    max-width: 800px;
+    color: #fff;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    height: auto;
+    display: block;
+    padding-bottom: 100px;
+}
+
+#result img { 
+    width: auto;
+    height: auto;
+    max-width: 95%;
+    max-height: 85vh;
+    object-fit: contain; 
+    display: block; 
+    transition: transform 0.1s linear;
+    transform-origin: center center;
+    margin: 0 auto;
+}
+
+/* Metadata (Date/Time) */
+#meta {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    color: #888; 
+    margin: 10px 0;
+    font-weight: 400; 
+    text-align: center;
+    width: 100%;
+    letter-spacing: -0.01em; 
+}
+
+/* Actions Bar */
+#actions {
+    display: none; 
+    gap: 10px;
+    padding: 15px 20px;
+    z-index: 50;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    background: rgba(0, 0, 0, 0.9);
+    position: sticky;
+    bottom: 0;
+    border-top: 1px solid #333;
+}
+
+.action-btn {
+    background: #fff;
+    border: none;
+    color: #000;
+    padding: 12px 16px;
+    border-radius: 8px; 
+    font-size: 15px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 600;
+    transition: transform 0.1s, opacity 0.2s;
+    min-width: 100px;
+    white-space: nowrap;
+    flex: 0 1 auto;
+}
+
+@media (max-width: 480px) {
+    .action-btn {
+        padding: 10px 12px;
+        font-size: 14px;
+        min-width: 80px;
+        gap: 4px;
+    }
+}
+
+.action-btn:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+}
+
+.action-btn span {
+    font-weight: normal;
+    font-size: 1.2em;
+}
+
+/* Loader */
+.loader {
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    display: inline-block;
+    margin: 40px auto 0;
+    animation: pulse 1s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+    100% { opacity: 0.3; transform: scale(1); }
+}
+
+/* Gallery Sidebar */
+#gallery {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 180px;
+    background: rgba(10, 10, 10, 0.98);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 80px 0 20px 0;
+    box-sizing: border-box;
+    gap: 15px;
+    overflow-y: auto;
+    border-right: 1px solid #333;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+}
+
+#gallery.open {
+    transform: translateX(0);
+}
+
+.gallery-item {
+    min-width: 140px;
+    width: 140px;
+    height: 140px;
+    min-height: 140px;
+    background: #222;
+    border: 1px solid #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-radius: 4px;
+    transition: transform 0.2s ease;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: none;
+    margin: 0;
+    transform: none; 
+}
+
+.gallery-item .text-preview {
+    font-size: 16px;
+    padding: 15px;
+    color: #ccc;
+    line-height: 1.4;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    text-align: left;
+}
+
+.gallery-item:active {
+    border-color: #fff;
+}
+
+.gallery-date {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    color: #ccc;
+    font-size: 10px;
+    padding: 4px;
+    text-align: center;
+    box-sizing: border-box;
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+/* Backdrop */
+#gallery-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 150;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    backdrop-filter: blur(2px);
+}
+
+#gallery-backdrop.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Settings Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    backdrop-filter: blur(5px);
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #1e1e1e;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #333;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #fff;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 32px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.close-btn:hover {
+    color: #fff;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.setting-group {
+    margin-bottom: 25px;
+}
+
+.setting-group h3 {
+    margin: 0 0 15px 0;
+    font-size: 18px;
+    color: #aaa;
+}
+
+.setting-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #ccc;
+    font-size: 14px;
+}
+
+.setting-group input,
+.setting-group select,
+.setting-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #2c2c2c;
+    color: #e0e0e0;
+    border: 1px solid #3d3d3d;
+    border-radius: 6px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+}
+
+.setting-group textarea {
+    resize: vertical;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.primary-btn,
+.secondary-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.primary-btn {
+    background: #fff;
+    color: #000;
+}
+
+.secondary-btn {
+    background: #3c3c3c;
+    color: #fff;
+}
+
+.primary-btn:active,
+.secondary-btn:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+}
+
+.region-info {
+    background: #2c2c2c;
+    padding: 10px;
+    border-radius: 6px;
+    color: #aaa;
+    font-family: monospace;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* Live Drawing Canvas - APP BACKGROUND */
+#canvas-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#pen-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+#canvas-overlay {
+    display: none;
+}

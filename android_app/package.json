@@ -1,0 +1,30 @@
+{
+  "name": "inklogic-android",
+  "version": "1.0.0",
+  "description": "InkLogic Android App",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@capacitor-community/bluetooth-le": "^6.0.1",
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@google/generative-ai": "^0.24.1",
+    "@rollup/rollup-win32-x64-msvc": "^4.57.1",
+    "assert": "^2.1.0",
+    "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
+    "idb-keyval": "^6.2.1",
+    "stream-browserify": "^3.0.0",
+    "util": "^0.12.5",
+    "web_pen_sdk": "^0.8.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "vite": "^5.0.0"
+  }
+}
