@@ -4,6 +4,8 @@ Work in progress prototype connecting paper Smartpen Notebooks to generative AI.
 
 ![InkLogic Logo](logo_git.png)
 
+![InkLogic Screenshot](screenshot.png)
+
 ## Overview
 
 This is a native Android application built with Capacitor that allows you to:
