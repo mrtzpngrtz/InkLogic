@@ -1,6 +1,6 @@
 {
   "name": "inklogic-android",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "description": "InkLogic Android App",
   "main": "src/main.js",
   "type": "module",

@@ -2,7 +2,7 @@
 
 Work in progress prototype connecting paper Smartpen Notebooks to generative AI.
 
-![InkLogic Screenshot](screenshot.png)
+![InkLogic Logo](logo_git.png)
 
 ## Overview
 

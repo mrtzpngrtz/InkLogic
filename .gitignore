@@ -70,4 +70,5 @@ design/
 # Root level exclusions (Private/Redundant)
 /android/
 /*.png
+!logo_git.png
 /*.svg
