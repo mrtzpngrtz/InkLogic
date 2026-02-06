@@ -71,4 +71,5 @@ design/
 /android/
 /*.png
 !logo_git.png
+!screenshot.png
 /*.svg
