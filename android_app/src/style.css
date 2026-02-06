@@ -39,12 +39,39 @@ body {
     padding: 0;
 }
 
+#header button img {
+    width: 24px;
+    height: 24px;
+    filter: invert(1);
+    display: block;
+}
+
+#header #header-connect-btn:not(.connected) img {
+    filter: invert(19%) sepia(100%) saturate(7463%) hue-rotate(0deg) brightness(98%) contrast(118%);
+}
+
 #header button:active {
     opacity: 0.7;
 }
 
+#header button.connected {
+    color: #4caf50;
+}
+
 #close-view {
+    background: transparent;
+    border: none;
     color: rgba(255, 255, 255, 0.5);
+    width: 50px;
+    height: 50px;
+    font-size: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    align-self: center;
+    margin-bottom: 5px;
 }
 
 #close-view:hover {
@@ -66,25 +93,34 @@ body {
 
 /* Status / Title Typography */
 #status { 
-    color: #fff; 
-    font-size: 10vw; 
-    font-weight: 700; 
-    letter-spacing: -0.04em; 
-    line-height: 0.9;
+    color: #888; 
+    font-size: 14px; 
+    font-weight: 400; 
     text-align: center;
     width: 100%;
     transition: opacity 0.3s ease;
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, 0);
+    padding-top: 60px;
     z-index: 20;
+    pointer-events: none;
 }
 
-/* Result Container */
+#main-logo {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Result Container - Static Frame */
 #result {
-    flex: 1;
-    width: 100%;
+    flex: 1; 
+    width: 92%;
+    margin: 0 auto;
     min-height: 0; 
     display: flex;
     flex-direction: column;
@@ -94,8 +130,25 @@ body {
     -webkit-overflow-scrolling: touch;
     overflow-x: hidden;
     position: relative;
-    padding: 20px;
+    padding: 15px;
     box-sizing: border-box;
+    border: 1px solid #555;
+    border-radius: 8px;
+}
+
+/* Scrollbar for Result */
+#result::-webkit-scrollbar {
+    width: 6px;
+}
+
+#result::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+#result::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 3px;
 }
 
 /* Result Text Typography */
@@ -113,14 +166,12 @@ body {
     overflow-wrap: break-word;
     height: auto;
     display: block;
-    padding-bottom: 100px;
+    padding-bottom: 50px;
 }
 
 #result img { 
-    width: auto;
+    width: 100%;
     height: auto;
-    max-width: 95%;
-    max-height: 85vh;
     object-fit: contain; 
     display: block; 
     transition: transform 0.1s linear;
@@ -147,6 +198,7 @@ body {
     padding: 15px 20px;
     z-index: 50;
     width: 100%;
+    box-sizing: border-box;
     justify-content: center;
     flex-wrap: wrap;
     background: rgba(0, 0, 0, 0.9);
@@ -159,20 +211,21 @@ body {
     background: #fff;
     border: none;
     color: #000;
-    padding: 12px 16px;
+    padding: 12px 8px;
     border-radius: 8px; 
-    font-size: 15px;
+    font-size: 14px;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 0;
     font-weight: 600;
     transition: transform 0.1s, opacity 0.2s;
-    min-width: 100px;
+    min-width: 60px;
     white-space: nowrap;
-    flex: 0 1 auto;
+    flex: 1;
+    max-width: 110px;
 }
 
 @media (max-width: 480px) {
@@ -328,6 +381,10 @@ body {
     backdrop-filter: blur(5px);
 }
 
+#message-modal {
+    z-index: 350; /* Ensure message modal is above settings modal */
+}
+
 .modal.hidden {
     display: none;
 }
@@ -462,7 +519,11 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: #000;
+    background-color: #000;
+    background-image: url('/logo.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100px;
     z-index: 1;
     display: flex;
     align-items: center;
@@ -478,4 +539,51 @@ body {
 
 #canvas-overlay {
     display: none;
+}
+
+/* Helper Classes */
+.flex-center {
+    display: flex;
+    align-items: center;
+}
+
+.hidden-element {
+    display: none !important;
+}
+
+.spacer-20 {
+    height: 20px;
+    margin: 10px auto;
+}
+
+.status-text {
+    color: #666;
+    font-size: 0.6em;
+    display: block;
+}
+
+.status-text.connected {
+    color: #0f0;
+}
+
+.status-text.generating {
+    color: #888;
+}
+
+.status-text.error {
+    color: #f44;
+}
+
+.pen-status-msg {
+    margin-top: 10px;
+    color: #888;
+    font-size: 14px;
+}
+
+.inverted-image {
+    filter: invert(1);
+}
+
+.loader-margin {
+    margin: 20px auto;
 }

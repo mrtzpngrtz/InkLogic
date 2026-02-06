@@ -9,25 +9,31 @@
 <body>
     <!-- Header with controls -->
     <div id="header">
-        <button id="toggle-gallery">☰</button>
-        <button id="close-view" style="display: none;">✕</button>
-        <button id="settings-btn">⚙</button>
+        <div class="flex-center">
+            <button id="toggle-gallery">☰</button>
+        </div>
+        <div class="flex-center">
+            <button id="header-connect-btn"><img src="/connect.svg" alt="Connect"></button>
+            <button id="header-clear-btn"><img src="/clear.svg" alt="Clear"></button>
+            <button id="settings-btn"><img src="/settings.svg" alt="Settings"></button>
+        </div>
     </div>
 
     <!-- Main Content Area -->
     <div id="content">
-        <div id="status">InkLogic<br><div style="height: 20px; margin: 20px auto;"></div><span style="color: #666; font-size: 0.4em; display: block;">Connect Pen</span></div>
+        <div id="status"></div>
         <div id="result"></div>
+        <button id="close-view" class="hidden-element">✕</button>
         <div id="meta"></div>
         <div id="actions">
             <button class="action-btn" id="delete-btn">
-                <span>✕</span> Delete
+                Delete
             </button>
             <button class="action-btn secondary-action" id="copy-download-btn">
-                <span>📋</span> Copy
+                Copy
             </button>
-            <button class="action-btn toggle-input" id="toggle-input-btn" style="display:none;">
-                <span>👁</span> Input
+            <button class="action-btn toggle-input hidden-element" id="toggle-input-btn">
+                Input
             </button>
         </div>
     </div>
@@ -40,6 +46,23 @@
     <!-- Gallery Backdrop -->
     <div id="gallery-backdrop"></div>
 
+    <!-- Message Modal -->
+    <div id="message-modal" class="modal hidden">
+        <div class="modal-content message-content">
+            <div class="modal-header">
+                <h2 id="message-title">Alert</h2>
+                <button class="close-btn" id="close-message-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="message-text"></p>
+                <div class="flex-center" style="margin-top: 20px; justify-content: flex-end; gap: 10px;">
+                    <button id="message-cancel-btn" class="secondary-btn">Cancel</button>
+                    <button id="message-ok-btn" class="primary-btn">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Settings Modal -->
     <div id="settings-modal" class="modal hidden">
         <div class="modal-content">
@@ -48,13 +71,6 @@
                 <button class="close-btn" id="close-settings-btn">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="setting-group">
-                    <h3>Pen Connection</h3>
-                    <button id="connect-btn" class="primary-btn">Connect Pen</button>
-                    <button id="clear-canvas-btn" class="secondary-btn">Clear Canvas</button>
-                    <div id="pen-status" style="margin-top: 10px; color: #888; font-size: 14px;">Not connected</div>
-                </div>
-                
                 <div class="setting-group">
                     <h3>Gemini API</h3>
                     <div>
@@ -92,6 +108,22 @@
                         <label>Image Trigger:</label>
                         <div class="region-info" id="image-region-info">X: 40-50, Y: 80-88</div>
                     </div>
+                </div>
+
+                <div class="setting-group">
+                    <h3>Data & Backup</h3>
+                    <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
+                        Your settings and data are stored locally on this device and are not backed up to the cloud.
+                    </p>
+                    <button id="clear-data-btn" class="secondary-btn" style="color: #ff4444; border: 1px solid #ff4444;">Clear App Data</button>
+                </div>
+
+                <div class="setting-group" style="text-align: center; margin-top: 30px;">
+                    <p style="color: #666; font-size: 12px; line-height: 1.6;">
+                        by moritz pongratz<br>
+                        <a href="https://www.moritzpongratz.com" style="color: #888; text-decoration: none;">www.moritzpongratz.com</a><br>
+                        <a href="https://www.aop.studio" style="color: #888; text-decoration: none;">www.aop.studio</a>
+                    </p>
                 </div>
             </div>
         </div>

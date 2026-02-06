@@ -1,0 +1,188 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.inklogic.app"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="22"
+9        android:targetSdkVersion="34" />
+10
+11    <!-- Permissions -->
+12
+13    <uses-permission android:name="android.permission.INTERNET" />
+13-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:34:5-67
+13-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:34:22-64
+14    <!-- Bluetooth -->
+15    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+15-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:8:5-81
+15-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:8:22-78
+16    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+16-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:9:5-79
+16-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:9:22-76
+17    <uses-permission
+17-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:10:5-12:38
+18        android:name="android.permission.BLUETOOTH"
+18-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:11:9-52
+19        android:maxSdkVersion="30" />
+19-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:12:9-35
+20    <uses-permission
+20-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:13:5-15:38
+21        android:name="android.permission.BLUETOOTH_ADMIN"
+21-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:14:9-58
+22        android:maxSdkVersion="30" />
+22-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:15:9-35
+23    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+23-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:16:5-18:31
+23-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:17:9-57
+24    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+24-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:19:5-21:31
+24-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:20:9-60
+25
+26    <uses-feature
+26-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:23:5-25:36
+27        android:name="android.hardware.bluetooth_le"
+27-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:24:9-53
+28        android:required="false" />
+28-->[:capacitor-community-bluetooth-le] D:\xampp\htdocs\2026_02_inklogic_android\android_app\node_modules\@capacitor-community\bluetooth-le\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:25:9-33
+29
+30    <permission
+30-->[androidx.core:core:1.12.0] C:\Users\mrtz\.gradle\caches\transforms-3\4f7b0d764f8b5d0d84c4d0344e1adc27\transformed\core-1.12.0\AndroidManifest.xml:22:5-24:47
+31        android:name="com.inklogic.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+31-->[androidx.core:core:1.12.0] C:\Users\mrtz\.gradle\caches\transforms-3\4f7b0d764f8b5d0d84c4d0344e1adc27\transformed\core-1.12.0\AndroidManifest.xml:23:9-81
+32        android:protectionLevel="signature" />
+32-->[androidx.core:core:1.12.0] C:\Users\mrtz\.gradle\caches\transforms-3\4f7b0d764f8b5d0d84c4d0344e1adc27\transformed\core-1.12.0\AndroidManifest.xml:24:9-44
+33
+34    <uses-permission android:name="com.inklogic.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+34-->[androidx.core:core:1.12.0] C:\Users\mrtz\.gradle\caches\transforms-3\4f7b0d764f8b5d0d84c4d0344e1adc27\transformed\core-1.12.0\AndroidManifest.xml:26:5-97
+34-->[androidx.core:core:1.12.0] C:\Users\mrtz\.gradle\caches\transforms-3\4f7b0d764f8b5d0d84c4d0344e1adc27\transformed\core-1.12.0\AndroidManifest.xml:26:22-94
+35
+36    <application
+36-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:3:5-30:19
+37        android:allowBackup="true"
+37-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:4:9-35
+38        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+38-->[androidx.core:core:1.12.0] C:\Users\mrtz\.gradle\caches\transforms-3\4f7b0d764f8b5d0d84c4d0344e1adc27\transformed\core-1.12.0\AndroidManifest.xml:28:18-86
+39        android:debuggable="true"
+40        android:extractNativeLibs="true"
+41        android:icon="@mipmap/ic_launcher"
+41-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:5:9-43
+42        android:label="@string/app_name"
+42-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:6:9-41
+43        android:roundIcon="@mipmap/ic_launcher_round"
+43-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:7:9-54
+44        android:supportsRtl="true"
+44-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:8:9-35
+45        android:testOnly="true"
+46        android:theme="@style/AppTheme" >
+46-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:9:9-40
+47        <activity
+47-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:10:9-21:20
+48            android:name="com.inklogic.app.MainActivity"
+48-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:12:13-41
+49            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+49-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:11:13-129
+50            android:exported="true"
+50-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:16:13-36
+51            android:label="@string/title_activity_main"
+51-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:13:13-56
+52            android:launchMode="singleTask"
+52-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:15:13-44
+53            android:theme="@style/AppTheme.NoActionBarLaunch" >
+53-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:14:13-62
+54            <intent-filter>
+54-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:17:13-20:29
+55                <action android:name="android.intent.action.MAIN" />
+55-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:18:17-69
+55-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:18:25-66
+56
+57                <category android:name="android.intent.category.LAUNCHER" />
+57-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:19:17-77
+57-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:19:27-74
+58            </intent-filter>
+59        </activity>
+60
+61        <provider
+62            android:name="androidx.core.content.FileProvider"
+62-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:24:13-62
+63            android:authorities="com.inklogic.app.fileprovider"
+63-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:25:13-64
+64            android:exported="false"
+64-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:26:13-37
+65            android:grantUriPermissions="true" >
+65-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:27:13-47
+66            <meta-data
+66-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:28:13-112
+67                android:name="android.support.FILE_PROVIDER_PATHS"
+67-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:28:24-74
+68                android:resource="@xml/file_paths" />
+68-->D:\xampp\htdocs\2026_02_inklogic_android\android_app\android\app\src\main\AndroidManifest.xml:28:75-109
+69        </provider>
+70        <provider
+70-->[androidx.emoji2:emoji2:1.2.0] C:\Users\mrtz\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\AndroidManifest.xml:24:9-32:20
+71            android:name="androidx.startup.InitializationProvider"
+71-->[androidx.emoji2:emoji2:1.2.0] C:\Users\mrtz\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\AndroidManifest.xml:25:13-67
+72            android:authorities="com.inklogic.app.androidx-startup"
+72-->[androidx.emoji2:emoji2:1.2.0] C:\Users\mrtz\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\AndroidManifest.xml:26:13-68
+73            android:exported="false" >
+73-->[androidx.emoji2:emoji2:1.2.0] C:\Users\mrtz\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\AndroidManifest.xml:27:13-37
+74            <meta-data
+74-->[androidx.emoji2:emoji2:1.2.0] C:\Users\mrtz\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\AndroidManifest.xml:29:13-31:52
+75                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+75-->[androidx.emoji2:emoji2:1.2.0] C:\Users\mrtz\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\AndroidManifest.xml:30:17-75
+76                android:value="androidx.startup" />
+76-->[androidx.emoji2:emoji2:1.2.0] C:\Users\mrtz\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\AndroidManifest.xml:31:17-49
+77            <meta-data
+77-->[androidx.lifecycle:lifecycle-process:2.6.1] C:\Users\mrtz\.gradle\caches\transforms-3\7d158143758428a9a27e664e481c199e\transformed\lifecycle-process-2.6.1\AndroidManifest.xml:29:13-31:52
+78                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+78-->[androidx.lifecycle:lifecycle-process:2.6.1] C:\Users\mrtz\.gradle\caches\transforms-3\7d158143758428a9a27e664e481c199e\transformed\lifecycle-process-2.6.1\AndroidManifest.xml:30:17-78
+79                android:value="androidx.startup" />
+79-->[androidx.lifecycle:lifecycle-process:2.6.1] C:\Users\mrtz\.gradle\caches\transforms-3\7d158143758428a9a27e664e481c199e\transformed\lifecycle-process-2.6.1\AndroidManifest.xml:31:17-49
+80            <meta-data
+80-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:29:13-31:52
+81                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+81-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:30:17-85
+82                android:value="androidx.startup" />
+82-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:31:17-49
+83        </provider>
+84
+85        <receiver
+85-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:34:9-52:20
+86            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+86-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:35:13-76
+87            android:directBootAware="false"
+87-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:36:13-44
+88            android:enabled="true"
+88-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:37:13-35
+89            android:exported="true"
+89-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:38:13-36
+90            android:permission="android.permission.DUMP" >
+90-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:39:13-57
+91            <intent-filter>
+91-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:40:13-42:29
+92                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+92-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:41:17-91
+92-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:41:25-88
+93            </intent-filter>
+94            <intent-filter>
+94-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:43:13-45:29
+95                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+95-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:44:17-85
+95-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:44:25-82
+96            </intent-filter>
+97            <intent-filter>
+97-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:46:13-48:29
+98                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+98-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:47:17-88
+98-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:47:25-85
+99            </intent-filter>
+100            <intent-filter>
+100-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:49:13-51:29
+101                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+101-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:50:17-95
+101-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\mrtz\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:50:25-92
+102            </intent-filter>
+103        </receiver>
+104    </application>
+105
+106</manifest>

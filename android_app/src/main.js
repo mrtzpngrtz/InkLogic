@@ -1,4 +1,5 @@
 // Main Application Logic
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import { PenManagerNative } from './services/PenManagerNative.js';
 import { GeminiService } from './services/GeminiService.js';
 import { StorageManager } from './services/StorageManager.js';
@@ -20,6 +21,15 @@ const triggerRegion = storageManager.getJSON('triggerRegion', { xMin: 50, xMax: 
 const imageTriggerRegion = storageManager.getJSON('imageTriggerRegion', { xMin: 40, xMax: 50, yMin: 80, yMax: 88 });
 
 // DOM Elements
+function dataURLtoFile(dataurl, filename) {
+    let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+    while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, {type:mime});
+}
+
 const elements = {
     status: document.getElementById('status'),
     result: document.getElementById('result'),
@@ -29,12 +39,12 @@ const elements = {
     galleryBackdrop: document.getElementById('gallery-backdrop'),
     toggleGallery: document.getElementById('toggle-gallery'),
     closeView: document.getElementById('close-view'),
+    headerConnectBtn: document.getElementById('header-connect-btn'),
+    headerClearBtn: document.getElementById('header-clear-btn'),
     settingsBtn: document.getElementById('settings-btn'),
     settingsModal: document.getElementById('settings-modal'),
     closeSettingsBtn: document.getElementById('close-settings-btn'),
-    connectBtn: document.getElementById('connect-btn'),
-    clearCanvasBtn: document.getElementById('clear-canvas-btn'),
-    penStatus: document.getElementById('pen-status'),
+    clearDataBtn: document.getElementById('clear-data-btn'),
     apiKey: document.getElementById('api-key'),
     modelSelect: document.getElementById('model-select'),
     textPrompt: document.getElementById('text-prompt'),
@@ -46,6 +56,71 @@ const elements = {
     textRegionInfo: document.getElementById('text-region-info'),
     imageRegionInfo: document.getElementById('image-region-info')
 };
+
+const messageModal = {
+    modal: document.getElementById('message-modal'),
+    title: document.getElementById('message-title'),
+    text: document.getElementById('message-text'),
+    okBtn: document.getElementById('message-ok-btn'),
+    cancelBtn: document.getElementById('message-cancel-btn'),
+    closeBtn: document.getElementById('close-message-btn')
+};
+
+function uiAlert(msg, title = 'Error') {
+    return new Promise((resolve) => {
+        messageModal.title.textContent = title;
+        messageModal.text.textContent = msg;
+        messageModal.cancelBtn.style.display = 'none';
+        messageModal.okBtn.textContent = 'OK';
+        messageModal.modal.classList.remove('hidden');
+        
+        const close = () => {
+            messageModal.modal.classList.add('hidden');
+            cleanup();
+            resolve();
+        };
+        
+        const cleanup = () => {
+            messageModal.okBtn.removeEventListener('click', close);
+            messageModal.closeBtn.removeEventListener('click', close);
+        }
+        
+        messageModal.okBtn.addEventListener('click', close);
+        messageModal.closeBtn.addEventListener('click', close);
+    });
+}
+
+function uiConfirm(msg, title = 'Confirmation') {
+    return new Promise((resolve) => {
+        messageModal.title.textContent = title;
+        messageModal.text.textContent = msg;
+        messageModal.cancelBtn.style.display = 'inline-block';
+        messageModal.okBtn.textContent = 'OK';
+        messageModal.modal.classList.remove('hidden');
+        
+        const onOk = () => {
+            messageModal.modal.classList.add('hidden');
+            cleanup();
+            resolve(true);
+        };
+        
+        const onCancel = () => {
+            messageModal.modal.classList.add('hidden');
+            cleanup();
+            resolve(false);
+        };
+        
+        const cleanup = () => {
+            messageModal.okBtn.removeEventListener('click', onOk);
+            messageModal.cancelBtn.removeEventListener('click', onCancel);
+            messageModal.closeBtn.removeEventListener('click', onCancel);
+        };
+        
+        messageModal.okBtn.addEventListener('click', onOk);
+        messageModal.cancelBtn.addEventListener('click', onCancel);
+        messageModal.closeBtn.addEventListener('click', onCancel);
+    });
+}
 
 // Canvas for live drawing
 let canvasContext = null;
@@ -84,12 +159,17 @@ async function init() {
     // Setup pen manager
     penManager.init();
     penManager.onStatusChange = (msg) => {
-        elements.penStatus.textContent = msg;
-        // Show pen connected in main status
-        if (msg === 'Pen connected') {
-            elements.status.innerHTML = 'InkLogic<br><div style="height: 20px; margin: 20px auto;"></div><span style="color: #0f0; font-size: 0.4em; display: block;">Pen Connected</span>';
+        updateStatus(msg);
+        if (penManager.connectedDevice) {
+            elements.headerConnectBtn.classList.add('connected');
+            elements.headerConnectBtn.innerHTML = '<img src="/connected.svg" alt="Connected">';
+        } else {
+            elements.headerConnectBtn.classList.remove('connected');
+            elements.headerConnectBtn.innerHTML = '<img src="/connect.svg" alt="Connect">';
         }
     };
+    
+    updateStatus('Connect Pen');
     
     penManager.onTrigger = (stroke) => {
         const now = Date.now();
@@ -121,8 +201,7 @@ function initLiveCanvas() {
     elements.canvas.width = canvasWidth;
     elements.canvas.height = canvasHeight;
     canvasContext = elements.canvas.getContext('2d');
-    canvasContext.fillStyle = '#000000';
-    canvasContext.fillRect(0, 0, canvasWidth, canvasHeight);
+    canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
 }
 
 // Render strokes in real-time
@@ -154,9 +233,8 @@ function renderLiveStroke(stroke) {
 function redrawAllStrokes() {
     if (!canvasContext) return;
     
-    // Clear canvas with black background
-    canvasContext.fillStyle = '#000000';
-    canvasContext.fillRect(0, 0, canvasWidth, canvasHeight);
+    // Clear canvas
+    canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
     
     // Redraw all strokes from current page's history
     if (penManager.strokeHistory && penManager.strokeHistory.length > 0) {
@@ -187,26 +265,36 @@ function setupEventListeners() {
         }
     });
     
-    // Pen
-    elements.connectBtn.addEventListener('click', async () => {
+    // Header Pen Controls
+    elements.headerConnectBtn.addEventListener('click', async () => {
         try {
-            elements.connectBtn.textContent = 'Connecting...';
-            elements.connectBtn.disabled = true;
+            updateStatus('Connecting...');
             await penManager.connect();
-            elements.connectBtn.textContent = 'Connected';
         } catch (e) {
-            elements.connectBtn.textContent = 'Connect Pen';
-            elements.connectBtn.disabled = false;
-            alert('Failed to connect to pen: ' + e.message);
+            await uiAlert('Failed to connect to pen: ' + e.message, 'Connection Error');
+            updateStatus('Connect Pen');
         }
     });
     
-    elements.clearCanvasBtn.addEventListener('click', () => {
-        penManager.clearCanvas();
-        initLiveCanvas(); // Clear the live canvas too
-        updateStatus('Canvas cleared');
+    elements.headerClearBtn.addEventListener('click', async () => {
+        if (await uiConfirm('Clear page? (Cannot be undone)', 'Clear Page')) {
+            penManager.clearCanvas();
+            initLiveCanvas();
+            updateStatus('Canvas cleared');
+        }
     });
-    
+
+    // Clear Data
+    if (elements.clearDataBtn) {
+        elements.clearDataBtn.addEventListener('click', async () => {
+            if (await uiConfirm('This will delete all your settings, API key, and history from this device. Are you sure?', 'Clear All Data')) {
+                await storageManager.clearAll();
+                await uiAlert('Data cleared. The app will now reload.', 'Cleared');
+                location.reload();
+            }
+        });
+    }
+
     // Settings inputs
     elements.apiKey.addEventListener('input', () => {
         const value = elements.apiKey.value;
@@ -291,7 +379,7 @@ function showItem(item) {
     // Hide logo when viewing items
     elements.status.style.display = 'none';
     elements.actions.style.display = 'flex';
-    elements.closeView.style.display = 'block';
+    elements.closeView.classList.remove('hidden-element');
     
     // Hide live canvas when viewing output
     const canvasContainer = document.getElementById('canvas-container');
@@ -311,15 +399,17 @@ function showItem(item) {
     }
     
     if (item.type === 'text') {
-        elements.copyDownloadBtn.innerHTML = '<span>📋</span> Copy';
+        elements.copyDownloadBtn.innerHTML = 'Copy';
     } else {
-        elements.copyDownloadBtn.innerHTML = '<span>↓</span> Download';
+        elements.copyDownloadBtn.innerHTML = 'Download';
     }
     
     if (item.inputUrl) {
+        elements.toggleInputBtn.classList.remove('hidden-element');
         elements.toggleInputBtn.style.display = 'flex';
-        elements.toggleInputBtn.innerHTML = '<span>👁</span> Input';
+        elements.toggleInputBtn.innerHTML = 'Input';
     } else {
+        elements.toggleInputBtn.classList.add('hidden-element');
         elements.toggleInputBtn.style.display = 'none';
     }
     
@@ -340,24 +430,33 @@ function clearView() {
     currentItem = null;
     elements.result.innerHTML = '';
     elements.meta.innerText = '';
+    
     elements.status.style.display = 'block';
-    elements.status.innerHTML = 'InkLogic<br><div style="height: 20px; margin: 20px auto;"></div><span style="color: #666; font-size: 0.4em; display: block;">Connect Pen</span>';
+    if (penManager.connectedDevice) {
+        updateStatus('Pen connected');
+    } else {
+        updateStatus('Connect Pen');
+    }
+    
     elements.actions.style.display = 'none';
-    elements.closeView.style.display = 'none';
+    elements.closeView.classList.add('hidden-element');
     
     // Show live canvas when returning to main view
     const canvasContainer = document.getElementById('canvas-container');
     if (canvasContainer) canvasContainer.style.display = 'flex';
 }
 
-function deleteCurrent() {
+async function deleteCurrent() {
     if (!currentItem) return;
-    const index = history.indexOf(currentItem);
-    if (index > -1) {
-        history.splice(index, 1);
-        storageManager.saveHistory(history);
-        renderGallery();
-        clearView();
+    
+    if (await uiConfirm('Delete this item? (Cannot be undone)', 'Delete')) {
+        const index = history.indexOf(currentItem);
+        if (index > -1) {
+            history.splice(index, 1);
+            storageManager.saveHistory(history);
+            renderGallery();
+            clearView();
+        }
     }
 }
 
@@ -375,7 +474,7 @@ async function secondaryAction() {
             }
             
             const originalText = elements.copyDownloadBtn.innerHTML;
-            elements.copyDownloadBtn.innerHTML = '<span>✓</span> Copied';
+            elements.copyDownloadBtn.innerHTML = 'Copied';
             setTimeout(() => elements.copyDownloadBtn.innerHTML = originalText, 1500);
             
         } else if (currentItem.type === 'image') {
@@ -386,6 +485,42 @@ async function secondaryAction() {
                 filename = `inklogic_${dateStr}.png`;
             }
             
+            // Try Share first (System Dialog)
+            try {
+                if (navigator.share) {
+                    const file = dataURLtoFile(currentItem.url, filename);
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'InkLogic Image',
+                            text: 'Generated by InkLogic'
+                        });
+                        return;
+                    }
+                }
+            } catch (shareErr) {
+                if (shareErr.name !== 'AbortError') {
+                    console.error("Share failed:", shareErr);
+                } else {
+                    return; // User cancelled share
+                }
+            }
+
+            // Fallback to Filesystem Save
+            try {
+                const base64Data = currentItem.url.split(',')[1];
+                await Filesystem.writeFile({
+                    path: filename,
+                    data: base64Data,
+                    directory: Directory.Documents
+                });
+                await uiAlert(`Saved to Documents/${filename}`, 'Saved');
+                return;
+            } catch (fsErr) {
+                console.error("Filesystem save failed:", fsErr);
+            }
+
+            // Fallback to link download
             const a = document.createElement('a');
             a.href = currentItem.url;
             a.download = filename;
@@ -395,7 +530,7 @@ async function secondaryAction() {
         }
     } catch (err) {
         console.error("Action failed:", err);
-        alert("Action failed: " + err.message);
+        await uiAlert("Action failed: " + err.message, 'Error');
     }
 }
 
@@ -426,12 +561,12 @@ function toggleInput() {
     showingInput = !showingInput;
     
     if (showingInput) {
-        elements.result.innerHTML = `<img src="${currentItem.inputUrl}" style="filter: invert(1);" alt="Input sketch">`;
+        elements.result.innerHTML = `<img src="${currentItem.inputUrl}" class="inverted-image" alt="Input sketch">`;
         resetZoom();
-        elements.toggleInputBtn.innerHTML = '<span>🖼</span> Output';
+        elements.toggleInputBtn.innerHTML = 'Output';
     } else {
         renderContent(currentItem);
-        elements.toggleInputBtn.innerHTML = '<span>👁</span> Input';
+        elements.toggleInputBtn.innerHTML = 'Input';
     }
 }
 
@@ -442,7 +577,7 @@ async function processGemini(mode) {
     // Show status and hide result when generating
     elements.status.style.display = 'block';
     elements.actions.style.display = 'none';
-    elements.closeView.style.display = 'none';
+    elements.closeView.classList.add('hidden-element');
     updateStatus(`Generating ${mode === 'image' ? 'Image' : 'Response'}...`);
     elements.result.innerHTML = '';
     
@@ -488,13 +623,21 @@ async function processGemini(mode) {
 }
 
 function updateStatus(msg) {
-    // Always show logo with status underneath
+    elements.status.style.display = 'block';
+    
     if (msg === 'Canvas cleared') {
-        elements.status.innerHTML = 'InkLogic<br><div style="height: 20px; margin: 20px auto;"></div><span style="color: #666; font-size: 0.4em; display: block;">Connect Pen</span>';
+         elements.status.innerHTML = msg;
+         setTimeout(() => {
+             if (penManager.connectedDevice) {
+                 elements.status.innerHTML = 'Pen connected';
+             } else {
+                 elements.status.innerHTML = 'Connect Pen';
+             }
+         }, 1500);
     } else if (msg.includes('Generating')) {
-        elements.status.innerHTML = `InkLogic<br><div class="loader" style="margin: 20px auto;"></div><span style="color: #888; font-size: 0.4em; display: block;">${msg}</span>`;
+        elements.status.innerHTML = `<div class="loader loader-margin"></div><br>${msg}`;
     } else if (msg.includes('Error')) {
-        elements.status.innerHTML = `InkLogic<br><div style="height: 20px; margin: 20px auto;"></div><span style="color: #f44; font-size: 0.4em; display: block;">${msg}</span>`;
+        elements.status.innerHTML = `<span style="color: #f44">${msg}</span>`;
     } else {
         elements.status.innerHTML = msg;
     }

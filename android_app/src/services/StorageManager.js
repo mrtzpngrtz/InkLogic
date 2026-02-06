@@ -1,5 +1,5 @@
 // StorageManager.js - Browser-compatible version using IndexedDB
-import { get, set } from 'idb-keyval';
+import { get, set, clear } from 'idb-keyval';
 
 export class StorageManager {
     constructor() {
@@ -49,6 +49,15 @@ export class StorageManager {
             await set(this.historyKey, history);
         } catch (e) {
             console.error("Failed to save history:", e);
+        }
+    }
+
+    async clearAll() {
+        localStorage.clear();
+        try {
+            await clear();
+        } catch (e) {
+            console.error("Failed to clear IndexedDB:", e);
         }
     }
 }

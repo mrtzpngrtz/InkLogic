@@ -1,0 +1,22 @@
+#Fri Feb 06 18:20:40 CET 2026
+base.0=D\:\\xampp\\htdocs\\2026_02_inklogic_android\\android_app\\android\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
+base.1=D\:\\xampp\\htdocs\\2026_02_inklogic_android\\android_app\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\12\\classes.dex
+base.2=D\:\\xampp\\htdocs\\2026_02_inklogic_android\\android_app\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\2\\classes.dex
+base.3=D\:\\xampp\\htdocs\\2026_02_inklogic_android\\android_app\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\5\\classes.dex
+base.4=D\:\\xampp\\htdocs\\2026_02_inklogic_android\\android_app\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\8\\classes.dex
+base.5=D\:\\xampp\\htdocs\\2026_02_inklogic_android\\android_app\\android\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
+base.6=D\:\\xampp\\htdocs\\2026_02_inklogic_android\\android_app\\android\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\8\\classes.dex
+path.0=classes.dex
+path.1=12/classes.dex
+path.2=2/classes.dex
+path.3=5/classes.dex
+path.4=8/classes.dex
+path.5=0/classes.dex
+path.6=8/classes.dex
+renamed.0=classes.dex
+renamed.1=classes2.dex
+renamed.2=classes3.dex
+renamed.3=classes4.dex
+renamed.4=classes5.dex
+renamed.5=classes6.dex
+renamed.6=classes7.dex
