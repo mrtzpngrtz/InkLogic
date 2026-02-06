@@ -63,3 +63,11 @@ logs/
 *.user
 *.userosscache
 *.sln.docstates
+
+# Design assets (Private)
+design/
+
+# Root level exclusions (Private/Redundant)
+/android/
+/*.png
+/*.svg
