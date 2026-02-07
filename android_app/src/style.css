@@ -587,3 +587,40 @@ body {
 .loader-margin {
     margin: 20px auto;
 }
+
+/* Choice Modal Styles */
+.choice-content {
+    max-width: 400px;
+}
+
+.choice-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.full-width-btn {
+    width: 100%;
+    margin: 0;
+    padding: 15px;
+    font-size: 16px;
+    justify-content: center;
+    border-radius: 12px;
+}
+
+.text-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    padding: 15px;
+    font-size: 15px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 5px;
+}
+
+.text-btn:active {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+}
