@@ -522,7 +522,7 @@ async function secondaryAction() {
             setTimeout(() => elements.copyDownloadBtn.innerHTML = originalText, 1500);
             
         } else if (currentItem.type === 'image') {
-            const choice = await uiChoice("Do you want to share this image or save it to your device?");
+            const choice = await uiChoice(" ");
             if (choice === 'cancel') return;
             
             let filename = 'inklogic_generated.png';
