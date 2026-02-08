@@ -1,0 +1,10 @@
+- [ ] Update `main.js` `drawTriggerRegions` function:
+    - [ ] Change colors to white outline, transparent fill
+    - [ ] Change text color to white
+    - [ ] Add check for `showTriggerRegions` setting before drawing
+- [ ] Update `index.html`:
+    - [ ] Add checkbox for "Show Trigger Regions" in Settings modal
+- [ ] Update `main.js` settings logic:
+    - [ ] Initialize checkbox with saved state
+    - [ ] Add event listener to save state and redraw canvas
+- [ ] Verify changes

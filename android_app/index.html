@@ -123,14 +123,30 @@
                 </div>
 
                 <div class="setting-group">
-                    <h3>Trigger Regions</h3>
-                    <div>
-                        <label>Text Trigger:</label>
-                        <div class="region-info" id="text-region-info">X: 50-60, Y: 80-88</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="margin: 0;">Trigger Regions</h3>
+                        <div style="display: flex; align-items: center;">
+                            <input type="checkbox" id="show-regions" style="width: auto; margin: 0 8px 0 0;">
+                            <label for="show-regions" style="margin: 0; display: inline;">Show on Canvas</label>
+                        </div>
                     </div>
                     <div>
-                        <label>Image Trigger:</label>
-                        <div class="region-info" id="image-region-info">X: 40-50, Y: 80-88</div>
+                        <label>Text Trigger (X Min-Max, Y Min-Max):</label>
+                        <div class="region-inputs">
+                            <input type="number" id="text-xmin" placeholder="X Min">
+                            <input type="number" id="text-xmax" placeholder="X Max">
+                            <input type="number" id="text-ymin" placeholder="Y Min">
+                            <input type="number" id="text-ymax" placeholder="Y Max">
+                        </div>
+                    </div>
+                    <div>
+                        <label>Image Trigger (X Min-Max, Y Min-Max):</label>
+                        <div class="region-inputs">
+                            <input type="number" id="image-xmin" placeholder="X Min">
+                            <input type="number" id="image-xmax" placeholder="X Max">
+                            <input type="number" id="image-ymin" placeholder="Y Min">
+                            <input type="number" id="image-ymax" placeholder="Y Max">
+                        </div>
                     </div>
                 </div>
 

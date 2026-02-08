@@ -54,8 +54,19 @@ const elements = {
     copyDownloadBtn: document.getElementById('copy-download-btn'),
     toggleInputBtn: document.getElementById('toggle-input-btn'),
     canvas: document.getElementById('pen-canvas'),
-    textRegionInfo: document.getElementById('text-region-info'),
-    imageRegionInfo: document.getElementById('image-region-info'),
+    textRegion: {
+        xMin: document.getElementById('text-xmin'),
+        xMax: document.getElementById('text-xmax'),
+        yMin: document.getElementById('text-ymin'),
+        yMax: document.getElementById('text-ymax')
+    },
+    imageRegion: {
+        xMin: document.getElementById('image-xmin'),
+        xMax: document.getElementById('image-xmax'),
+        yMin: document.getElementById('image-ymin'),
+        yMax: document.getElementById('image-ymax')
+    },
+    showRegionsCheckbox: document.getElementById('show-regions'),
     choiceModal: document.getElementById('choice-modal'),
     choiceTitle: document.getElementById('choice-title'),
     choiceText: document.getElementById('choice-text'),
@@ -189,10 +200,21 @@ async function init() {
     geminiService.setApiKey(savedSettings.apiKey);
     geminiService.setModel(savedSettings.model);
     
-    // Update trigger region display
-    elements.textRegionInfo.textContent = `X: ${triggerRegion.xMin}-${triggerRegion.xMax}, Y: ${triggerRegion.yMin}-${triggerRegion.yMax}`;
-    elements.imageRegionInfo.textContent = `X: ${imageTriggerRegion.xMin}-${imageTriggerRegion.xMax}, Y: ${imageTriggerRegion.yMin}-${imageTriggerRegion.yMax}`;
+    // Populate trigger region inputs
+    elements.textRegion.xMin.value = triggerRegion.xMin;
+    elements.textRegion.xMax.value = triggerRegion.xMax;
+    elements.textRegion.yMin.value = triggerRegion.yMin;
+    elements.textRegion.yMax.value = triggerRegion.yMax;
+
+    elements.imageRegion.xMin.value = imageTriggerRegion.xMin;
+    elements.imageRegion.xMax.value = imageTriggerRegion.xMax;
+    elements.imageRegion.yMin.value = imageTriggerRegion.yMin;
+    elements.imageRegion.yMax.value = imageTriggerRegion.yMax;
     
+    // Load show regions preference
+    const showRegions = storageManager.get('showTriggerRegions', true);
+    elements.showRegionsCheckbox.checked = showRegions;
+
     // Initialize live drawing canvas
     initLiveCanvas();
     
@@ -203,6 +225,9 @@ async function init() {
     // Setup pen manager
     penManager.init();
     penManager.onStatusChange = (msg) => {
+        // Filter out "Pen event" messages as requested
+        if (msg.startsWith('Pen event:')) return;
+        
         updateStatus(msg);
         if (penManager.connectedDevice) {
             elements.headerConnectBtn.classList.add('connected');
@@ -210,6 +235,15 @@ async function init() {
         } else {
             elements.headerConnectBtn.classList.remove('connected');
             elements.headerConnectBtn.innerHTML = '<img src="/connect.svg" alt="Connect">';
+        }
+    };
+
+    // Show coordinates instead of pen events
+    penManager.onDebugInfo = (info) => {
+        const currentStatus = elements.status.innerText;
+        // Don't overwrite critical messages like "Generating..." or errors
+        if (!currentStatus.includes('Generating') && !currentStatus.includes('Error')) {
+             elements.status.innerText = info;
         }
     };
     
@@ -246,6 +280,39 @@ function initLiveCanvas() {
     elements.canvas.height = canvasHeight;
     canvasContext = elements.canvas.getContext('2d');
     canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
+    
+    // Update pen manager with screen size for mapping
+    penManager.setCanvasSize(canvasWidth, canvasHeight);
+    drawTriggerRegions();
+}
+
+function drawTriggerRegions() {
+    if (!canvasContext || !elements.showRegionsCheckbox.checked) return;
+    
+    const regions = [
+        { r: triggerRegion, label: 'Text' },
+        { r: imageTriggerRegion, label: 'Image' }
+    ];
+    
+    regions.forEach(item => {
+        const topLeft = penManager.mapToScreen(item.r.xMin, item.r.yMin);
+        const bottomRight = penManager.mapToScreen(item.r.xMax, item.r.yMax);
+        
+        const w = bottomRight.x - topLeft.x;
+        const h = bottomRight.y - topLeft.y;
+        
+        // White outline, transparent fill
+        canvasContext.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        canvasContext.lineWidth = 1;
+        canvasContext.setLineDash([5, 5]); // Dashed line for visibility
+        canvasContext.strokeRect(topLeft.x, topLeft.y, w, h);
+        canvasContext.setLineDash([]); // Reset dash
+        
+        // White text
+        canvasContext.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        canvasContext.font = '12px Helvetica, Arial, sans-serif';
+        canvasContext.fillText(item.label, topLeft.x + 5, topLeft.y + 16);
+    });
 }
 
 // Render strokes in real-time
@@ -259,14 +326,13 @@ function renderLiveStroke(stroke) {
     canvasContext.beginPath();
     
     stroke.points.forEach((dot, index) => {
-        // Convert from pen coordinates (0-61 x, 0-88 y) to canvas coordinates
-        const x = (dot.x / 61) * canvasWidth;
-        const y = (dot.y / 88) * canvasHeight;
+        // Use mapToScreen to center and scale correctly
+        const mapped = penManager.mapToScreen(dot.x, dot.y);
         
         if (index === 0) {
-            canvasContext.moveTo(x, y);
+            canvasContext.moveTo(mapped.x, mapped.y);
         } else {
-            canvasContext.lineTo(x, y);
+            canvasContext.lineTo(mapped.x, mapped.y);
         }
     });
     
@@ -279,6 +345,7 @@ function redrawAllStrokes() {
     
     // Clear canvas
     canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
+    drawTriggerRegions();
     
     // Redraw all strokes from current page's history
     if (penManager.strokeHistory && penManager.strokeHistory.length > 0) {
@@ -358,6 +425,46 @@ function setupEventListeners() {
     
     elements.imagePrompt.addEventListener('input', () => {
         storageManager.setValue('geminiImagePrompt', elements.imagePrompt.value);
+    });
+
+    // Trigger Region Listeners
+    const updateRegions = () => {
+        // Update Text Trigger
+        triggerRegion.xMin = parseFloat(elements.textRegion.xMin.value) || 0;
+        triggerRegion.xMax = parseFloat(elements.textRegion.xMax.value) || 0;
+        triggerRegion.yMin = parseFloat(elements.textRegion.yMin.value) || 0;
+        triggerRegion.yMax = parseFloat(elements.textRegion.yMax.value) || 0;
+        storageManager.setValue('triggerRegion', triggerRegion);
+
+        // Update Image Trigger
+        imageTriggerRegion.xMin = parseFloat(elements.imageRegion.xMin.value) || 0;
+        imageTriggerRegion.xMax = parseFloat(elements.imageRegion.xMax.value) || 0;
+        imageTriggerRegion.yMin = parseFloat(elements.imageRegion.yMin.value) || 0;
+        imageTriggerRegion.yMax = parseFloat(elements.imageRegion.yMax.value) || 0;
+        storageManager.setValue('imageTriggerRegion', imageTriggerRegion);
+
+        // Redraw
+        if (canvasContext) {
+            canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
+            drawTriggerRegions();
+            redrawAllStrokes();
+        }
+    };
+
+    [
+        ...Object.values(elements.textRegion),
+        ...Object.values(elements.imageRegion)
+    ].forEach(input => {
+        input.addEventListener('input', updateRegions);
+    });
+
+    elements.showRegionsCheckbox.addEventListener('change', () => {
+        storageManager.setValue('showTriggerRegions', elements.showRegionsCheckbox.checked);
+        if (canvasContext) {
+            canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
+            drawTriggerRegions();
+            redrawAllStrokes();
+        }
     });
     
     // Actions
@@ -646,6 +753,19 @@ async function processGemini(mode) {
         exportCtx.fillStyle = '#ffffff';
         exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
         
+        // Calculate centered scaling for export
+        const padding = 10;
+        const viewW = 800 - (padding * 2);
+        const viewH = 800 - (padding * 2);
+        const paperW = 62;
+        const paperH = 88;
+        const scale = Math.min(viewW / paperW, viewH / paperH);
+        const offX = (800 - (paperW * scale)) / 2;
+        const offY = (800 - (paperH * scale)) / 2;
+        
+        // Align left by 3 units
+        const shiftX = 3 * scale;
+
         penManager.strokeHistory.forEach(stroke => {
             if (!stroke.points || stroke.points.length === 0) return;
             exportCtx.lineWidth = 2;
@@ -654,8 +774,8 @@ async function processGemini(mode) {
             exportCtx.lineJoin = 'round';
             exportCtx.beginPath();
             stroke.points.forEach((dot, index) => {
-                const x = (dot.x / 61) * exportCanvas.width;
-                const y = (dot.y / 88) * exportCanvas.height;
+                const x = dot.x * scale + offX - shiftX;
+                const y = dot.y * scale + offY;
                 if (index === 0) exportCtx.moveTo(x, y);
                 else exportCtx.lineTo(x, y);
             });

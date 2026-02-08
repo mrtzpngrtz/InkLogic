@@ -13,8 +13,8 @@ const PEN_CHARACTERISTICS_WRITE_UUID_128 = "8bc8cc7d-88ca-56b0-af9a-9bf514d0d61a
 export class PenManagerNative {
     constructor() {
         this.paperSize = { 
-            Xmin: 0, Xmax: 61, Ymin: 0, Ymax: 88, 
-            width: 61, height: 88 
+            Xmin: 0, Xmax: 62, Ymin: 0, Ymax: 88, 
+            width: 62, height: 88 
         };
         this.strokeHistory = [];
         this.currentStroke = null;
@@ -332,8 +332,11 @@ export class PenManagerNative {
         const ox = (this.viewWidth - (pw * scale)) / 2;
         const oy = (this.viewHeight - (ph * scale)) / 2;
         
+        // Shift left by 3 units as requested
+        const shiftX = 3 * scale;
+        
         return {
-            x: (x - this.paperSize.Xmin) * scale + ox,
+            x: (x - this.paperSize.Xmin) * scale + ox - shiftX,
             y: (y - this.paperSize.Ymin) * scale + oy
         };
     }
