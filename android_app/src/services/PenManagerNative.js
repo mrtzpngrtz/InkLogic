@@ -12,9 +12,10 @@ const PEN_CHARACTERISTICS_WRITE_UUID_128 = "8bc8cc7d-88ca-56b0-af9a-9bf514d0d61a
 
 export class PenManagerNative {
     constructor() {
+        // Updated to reflect the 13x21cm notebook scale and drawable coordinates from photo
         this.paperSize = { 
-            Xmin: 0, Xmax: 62, Ymin: 0, Ymax: 88, 
-            width: 62, height: 88 
+            Xmin: 5, Xmax: 62, Ymin: 10, Ymax: 88, 
+            width: 130, height: 210 // 13x21cm in mm scale or relative
         };
         this.strokeHistory = [];
         this.currentStroke = null;
@@ -320,24 +321,22 @@ export class PenManagerNative {
         this.viewHeight = height;
     }
 
+    setNotebookSize(widthUnits, heightUnits) {
+        this.notebookWidthUnits = widthUnits;
+        this.notebookHeightUnits = heightUnits;
+    }
+
     mapToScreen(x, y) {
         if (!this.viewWidth || !this.viewHeight) return { x: 0, y: 0 };
         
-        const p = 0.01;
-        const uw = this.viewWidth * (1 - 2 * p);
-        const uh = this.viewHeight * (1 - 2 * p);
-        const pw = Math.max(this.paperSize.width, 0.0001); 
-        const ph = Math.max(this.paperSize.height, 0.0001);
-        const scale = Math.min(uw / pw, uh / ph);
-        const ox = (this.viewWidth - (pw * scale)) / 2;
-        const oy = (this.viewHeight - (ph * scale)) / 2;
+        const nbW = this.notebookWidthUnits || 65;
+        const nbH = this.notebookHeightUnits || 105;
         
-        // Shift left by 3 units as requested
-        const shiftX = 3 * scale;
+        const scale = Math.min(this.viewWidth / nbW, this.viewHeight / nbH);
         
         return {
-            x: (x - this.paperSize.Xmin) * scale + ox - shiftX,
-            y: (y - this.paperSize.Ymin) * scale + oy
+            x: x * scale,
+            y: y * scale
         };
     }
 }

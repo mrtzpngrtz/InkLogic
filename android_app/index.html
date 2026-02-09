@@ -19,31 +19,29 @@
         </div>
     </div>
 
-    <!-- Main Content Area -->
-    <div id="content">
-        <div id="status"></div>
+    <!-- Single unified book-shaped page -->
+    <div id="page-frame">
+        <canvas id="pen-canvas"></canvas>
         <div id="result"></div>
+        <div id="status"></div>
+    </div>
+
+    <!-- Page size label -->
+    <div id="page-size-label"></div>
+
+    <!-- Controls below the page -->
+    <div id="page-controls">
         <button id="close-view" class="hidden-element">✕</button>
         <div id="meta"></div>
         <div id="actions">
-            <button class="action-btn" id="delete-btn">
-                Delete
-            </button>
-            <button class="action-btn secondary-action" id="copy-download-btn">
-                Copy
-            </button>
-            <button class="action-btn toggle-input hidden-element" id="toggle-input-btn">
-                Input
-            </button>
+            <button class="action-btn" id="delete-btn">Delete</button>
+            <button class="action-btn secondary-action" id="copy-download-btn">Copy</button>
+            <button class="action-btn toggle-input hidden-element" id="toggle-input-btn">Input</button>
         </div>
     </div>
     
     <!-- Gallery Sidebar -->
-    <div id="gallery">
-        <!-- Gallery items will be injected here -->
-    </div>
-
-    <!-- Gallery Backdrop -->
+    <div id="gallery"></div>
     <div id="gallery-backdrop"></div>
 
     <!-- Message Modal -->
@@ -73,15 +71,9 @@
             <div class="modal-body choice-body">
                 <p id="choice-text" style="text-align: center; margin-bottom: 25px; color: #ccc;">Choose an action for this image</p>
                 <div class="choice-buttons">
-                    <button id="choice-share-btn" class="primary-btn full-width-btn">
-                         Share Image
-                    </button>
-                    <button id="choice-save-btn" class="secondary-btn full-width-btn">
-                         Save to Device
-                    </button>
-                    <button id="choice-cancel-btn" class="text-btn full-width-btn">
-                        Cancel
-                    </button>
+                    <button id="choice-share-btn" class="primary-btn full-width-btn">Share Image</button>
+                    <button id="choice-save-btn" class="secondary-btn full-width-btn">Save to Device</button>
+                    <button id="choice-cancel-btn" class="text-btn full-width-btn">Cancel</button>
                 </div>
             </div>
         </div>
@@ -95,6 +87,17 @@
                 <button class="close-btn" id="close-settings-btn">&times;</button>
             </div>
             <div class="modal-body">
+                <div class="setting-group">
+                    <h3>Paper Format</h3>
+                    <div>
+                        <label for="paper-format">Notebook Size:</label>
+                        <select id="paper-format">
+                            <option value="13x21">13 × 21 cm (Medium)</option>
+                            <option value="19x25">19 × 25 cm (X-Large)</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="setting-group">
                     <h3>Gemini API</h3>
                     <div>
@@ -168,12 +171,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Live Drawing Canvas -->
-    <div id="canvas-container">
-        <canvas id="pen-canvas"></canvas>
-        <div id="canvas-overlay">Live Drawing</div>
     </div>
 
     <script type="module" src="/src/main.js"></script>

@@ -10,16 +10,40 @@ const penManager = new PenManagerNative();
 const geminiService = new GeminiService();
 const storageManager = new StorageManager();
 
+// Paper Format Configs
+const PAPER_FORMATS = {
+    '13x21': {
+        label: '13 × 21 cm (Medium)',
+        widthCm: 13, heightCm: 21,
+        // Coordinate space from pen
+        widthUnits: 65, heightUnits: 105,
+        aspectW: 13, aspectH: 21,
+        defaultTrigger: { xMin: 50, xMax: 60, yMin: 80, yMax: 88 },
+        defaultImageTrigger: { xMin: 40, xMax: 50, yMin: 80, yMax: 88 }
+    },
+    '19x25': {
+        label: '19 × 25 cm (X-Large)',
+        widthCm: 19, heightCm: 25,
+        // From photo: X=6-83 (77 units), Y=6-108 (102 units)
+        widthUnits: 89, heightUnits: 114,
+        aspectW: 19, aspectH: 25,
+        defaultTrigger: { xMin: 75, xMax: 85, yMin: 100, yMax: 115 },
+        defaultImageTrigger: { xMin: 5, xMax: 15, yMin: 100, yMax: 115 }
+    }
+};
+
 // State
 let history = [];
 let currentItem = null;
 let showingInput = false;
 let lastTriggerTime = 0;
 const TRIGGER_COOLDOWN = 2000;
+let currentFormat = null;
+let currentFormatKey = '13x21';
 
-// Trigger Regions
-const triggerRegion = storageManager.getJSON('triggerRegion', { xMin: 50, xMax: 60, yMin: 80, yMax: 88 });
-const imageTriggerRegion = storageManager.getJSON('imageTriggerRegion', { xMin: 40, xMax: 50, yMin: 80, yMax: 88 });
+// Trigger Regions (current format)
+let triggerRegion = { xMin: 50, xMax: 60, yMin: 80, yMax: 88 };
+let imageTriggerRegion = { xMin: 40, xMax: 50, yMin: 80, yMax: 88 };
 
 // DOM Elements
 function dataURLtoFile(dataurl, filename) {
@@ -73,7 +97,8 @@ const elements = {
     choiceSaveBtn: document.getElementById('choice-save-btn'),
     choiceShareBtn: document.getElementById('choice-share-btn'),
     choiceCancelBtn: document.getElementById('choice-cancel-btn'),
-    closeChoiceBtn: document.getElementById('close-choice-btn')
+    closeChoiceBtn: document.getElementById('close-choice-btn'),
+    paperFormat: document.getElementById('paper-format')
 };
 
 const messageModal = {
@@ -200,16 +225,13 @@ async function init() {
     geminiService.setApiKey(savedSettings.apiKey);
     geminiService.setModel(savedSettings.model);
     
-    // Populate trigger region inputs
-    elements.textRegion.xMin.value = triggerRegion.xMin;
-    elements.textRegion.xMax.value = triggerRegion.xMax;
-    elements.textRegion.yMin.value = triggerRegion.yMin;
-    elements.textRegion.yMax.value = triggerRegion.yMax;
+    // Load and apply paper format
+    const savedFormat = storageManager.get('paperFormat', '13x21');
+    elements.paperFormat.value = savedFormat;
+    applyFormat(savedFormat);
 
-    elements.imageRegion.xMin.value = imageTriggerRegion.xMin;
-    elements.imageRegion.xMax.value = imageTriggerRegion.xMax;
-    elements.imageRegion.yMin.value = imageTriggerRegion.yMin;
-    elements.imageRegion.yMax.value = imageTriggerRegion.yMax;
+    // Populate trigger region inputs
+    updateRegionInputs();
     
     // Load show regions preference
     const showRegions = storageManager.get('showTriggerRegions', true);
@@ -274,15 +296,57 @@ async function init() {
     setupEventListeners();
 }
 
+// Update inputs in settings UI
+function updateRegionInputs() {
+    elements.textRegion.xMin.value = triggerRegion.xMin;
+    elements.textRegion.xMax.value = triggerRegion.xMax;
+    elements.textRegion.yMin.value = triggerRegion.yMin;
+    elements.textRegion.yMax.value = triggerRegion.yMax;
+
+    elements.imageRegion.xMin.value = imageTriggerRegion.xMin;
+    elements.imageRegion.xMax.value = imageTriggerRegion.xMax;
+    elements.imageRegion.yMin.value = imageTriggerRegion.yMin;
+    elements.imageRegion.yMax.value = imageTriggerRegion.yMax;
+}
+
+// Apply paper format
+function applyFormat(formatKey) {
+    currentFormatKey = formatKey;
+    const fmt = PAPER_FORMATS[formatKey] || PAPER_FORMATS['13x21'];
+    currentFormat = fmt;
+
+    // Load format-specific trigger regions
+    triggerRegion = storageManager.getJSON(`triggerRegion_${formatKey}`, fmt.defaultTrigger);
+    imageTriggerRegion = storageManager.getJSON(`imageTriggerRegion_${formatKey}`, fmt.defaultImageTrigger);
+    
+    // Update page-frame aspect ratio
+    const pageFrame = document.getElementById('page-frame');
+    if (pageFrame) {
+        pageFrame.style.aspectRatio = `${fmt.aspectW} / ${fmt.aspectH}`;
+    }
+    
+    // Update page size label
+    const label = document.getElementById('page-size-label');
+    if (label) {
+        label.textContent = `${fmt.widthCm} × ${fmt.heightCm} cm`;
+    }
+    
+    // Tell pen manager about the notebook coordinate space
+    penManager.setNotebookSize(fmt.widthUnits, fmt.heightUnits);
+}
+
 // Initialize live canvas
 function initLiveCanvas() {
-    elements.canvas.width = canvasWidth;
-    elements.canvas.height = canvasHeight;
-    canvasContext = elements.canvas.getContext('2d');
-    canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
+    // Determine the actual rendered size of the canvas to match coordinates correctly
+    const rect = elements.canvas.getBoundingClientRect();
+    elements.canvas.width = rect.width;
+    elements.canvas.height = rect.height;
     
-    // Update pen manager with screen size for mapping
-    penManager.setCanvasSize(canvasWidth, canvasHeight);
+    canvasContext = elements.canvas.getContext('2d');
+    canvasContext.clearRect(0, 0, rect.width, rect.height);
+    
+    // Update pen manager with actual canvas pixels for mapping
+    penManager.setCanvasSize(rect.width, rect.height);
     drawTriggerRegions();
 }
 
@@ -298,14 +362,14 @@ function drawTriggerRegions() {
         const topLeft = penManager.mapToScreen(item.r.xMin, item.r.yMin);
         const bottomRight = penManager.mapToScreen(item.r.xMax, item.r.yMax);
         
-        const w = bottomRight.x - topLeft.x;
-        const h = bottomRight.y - topLeft.y;
+        const rw = bottomRight.x - topLeft.x;
+        const rh = bottomRight.y - topLeft.y;
         
         // White outline, transparent fill
         canvasContext.strokeStyle = 'rgba(255, 255, 255, 0.8)';
         canvasContext.lineWidth = 1;
         canvasContext.setLineDash([5, 5]); // Dashed line for visibility
-        canvasContext.strokeRect(topLeft.x, topLeft.y, w, h);
+        canvasContext.strokeRect(topLeft.x, topLeft.y, rw, rh);
         canvasContext.setLineDash([]); // Reset dash
         
         // White text
@@ -427,6 +491,16 @@ function setupEventListeners() {
         storageManager.setValue('geminiImagePrompt', elements.imagePrompt.value);
     });
 
+    // Paper Format
+    elements.paperFormat.addEventListener('change', () => {
+        const value = elements.paperFormat.value;
+        storageManager.setValue('paperFormat', value);
+        applyFormat(value);
+        updateRegionInputs();
+        initLiveCanvas();
+        redrawAllStrokes();
+    });
+
     // Trigger Region Listeners
     const updateRegions = () => {
         // Update Text Trigger
@@ -434,14 +508,14 @@ function setupEventListeners() {
         triggerRegion.xMax = parseFloat(elements.textRegion.xMax.value) || 0;
         triggerRegion.yMin = parseFloat(elements.textRegion.yMin.value) || 0;
         triggerRegion.yMax = parseFloat(elements.textRegion.yMax.value) || 0;
-        storageManager.setValue('triggerRegion', triggerRegion);
+        storageManager.setJSON(`triggerRegion_${currentFormatKey}`, triggerRegion);
 
         // Update Image Trigger
         imageTriggerRegion.xMin = parseFloat(elements.imageRegion.xMin.value) || 0;
         imageTriggerRegion.xMax = parseFloat(elements.imageRegion.xMax.value) || 0;
         imageTriggerRegion.yMin = parseFloat(elements.imageRegion.yMin.value) || 0;
         imageTriggerRegion.yMax = parseFloat(elements.imageRegion.yMax.value) || 0;
-        storageManager.setValue('imageTriggerRegion', imageTriggerRegion);
+        storageManager.setJSON(`imageTriggerRegion_${currentFormatKey}`, imageTriggerRegion);
 
         // Redraw
         if (canvasContext) {
@@ -527,14 +601,13 @@ function renderGallery() {
 function showItem(item) {
     currentItem = item;
     showingInput = false;
-    // Hide logo when viewing items
+    // Hide status when viewing items
     elements.status.style.display = 'none';
     elements.actions.style.display = 'flex';
     elements.closeView.classList.remove('hidden-element');
     
-    // Hide live canvas when viewing output
-    const canvasContainer = document.getElementById('canvas-container');
-    if (canvasContainer) canvasContainer.style.display = 'none';
+    // Show result overlay (covers the canvas within the same page frame)
+    elements.result.classList.add('visible');
     
     if (item.timestamp) {
         const date = new Date(item.timestamp);
@@ -580,6 +653,7 @@ function renderContent(item) {
 function clearView() {
     currentItem = null;
     elements.result.innerHTML = '';
+    elements.result.classList.remove('visible');
     elements.meta.innerText = '';
     
     elements.status.style.display = 'block';
@@ -591,10 +665,6 @@ function clearView() {
     
     elements.actions.style.display = 'none';
     elements.closeView.classList.add('hidden-element');
-    
-    // Show live canvas when returning to main view
-    const canvasContainer = document.getElementById('canvas-container');
-    if (canvasContainer) canvasContainer.style.display = 'flex';
 }
 
 async function deleteCurrent() {
@@ -737,11 +807,12 @@ async function processGemini(mode) {
     const prompt = mode === 'image' ? elements.imagePrompt.value : elements.textPrompt.value;
     
     // Show status and hide result when generating
+    elements.result.classList.remove('visible');
+    elements.result.innerHTML = '';
     elements.status.style.display = 'block';
     elements.actions.style.display = 'none';
     elements.closeView.classList.add('hidden-element');
     updateStatus(`Generating ${mode === 'image' ? 'Image' : 'Response'}...`);
-    elements.result.innerHTML = '';
     
     try {
         const exportCanvas = document.createElement('canvas');
@@ -753,18 +824,18 @@ async function processGemini(mode) {
         exportCtx.fillStyle = '#ffffff';
         exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
         
-        // Calculate centered scaling for export
-        const padding = 10;
+        // Calculate centered scaling for export based on current paper format
+        const fmt = currentFormat || PAPER_FORMATS['13x21'];
+        const notebookWidthUnits = fmt.widthUnits; 
+        const notebookHeightUnits = fmt.heightUnits;
+        
+        const padding = 40; 
         const viewW = 800 - (padding * 2);
         const viewH = 800 - (padding * 2);
-        const paperW = 62;
-        const paperH = 88;
-        const scale = Math.min(viewW / paperW, viewH / paperH);
-        const offX = (800 - (paperW * scale)) / 2;
-        const offY = (800 - (paperH * scale)) / 2;
         
-        // Align left by 3 units
-        const shiftX = 3 * scale;
+        const scale = Math.min(viewW / notebookWidthUnits, viewH / notebookHeightUnits);
+        const offX = (800 - (notebookWidthUnits * scale)) / 2;
+        const offY = (800 - (notebookHeightUnits * scale)) / 2;
 
         penManager.strokeHistory.forEach(stroke => {
             if (!stroke.points || stroke.points.length === 0) return;
@@ -774,7 +845,7 @@ async function processGemini(mode) {
             exportCtx.lineJoin = 'round';
             exportCtx.beginPath();
             stroke.points.forEach((dot, index) => {
-                const x = dot.x * scale + offX - shiftX;
+                const x = dot.x * scale + offX;
                 const y = dot.y * scale + offY;
                 if (index === 0) exportCtx.moveTo(x, y);
                 else exportCtx.lineTo(x, y);

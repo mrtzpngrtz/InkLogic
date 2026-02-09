@@ -185,6 +185,10 @@ npm run build
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
+## Privacy Policy
+
+See [PRIVACY.md](PRIVACY.md) for details on how user data and AI interactions are handled.
+
 ## Credits
 
 - Capacitor by Ionic

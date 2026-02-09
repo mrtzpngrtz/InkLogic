@@ -22,6 +22,7 @@ body {
     box-sizing: border-box;
     z-index: 210;
     background: transparent;
+    flex-shrink: 0;
 }
 
 #header button {
@@ -58,53 +59,93 @@ body {
     color: #4caf50;
 }
 
-#close-view {
-    background: transparent;
-    border: none;
-    color: rgba(255, 255, 255, 0.5);
-    width: 50px;
-    height: 50px;
-    font-size: 30px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.2s;
-    align-self: center;
-    margin-bottom: 5px;
+/* ==========================================
+   SINGLE UNIFIED PAGE FRAME (the notebook)
+   ========================================== */
+#page-frame {
+    width: 90vw;
+    max-width: 400px;
+    aspect-ratio: 13 / 21;
+    margin: 0 auto;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+    overflow: hidden;
+    background: #000;
+    flex-shrink: 0;
 }
 
-#close-view:hover {
-    color: #fff;
-}
-
-#content { 
-    flex: 1; 
+/* Canvas fills the entire page frame */
+#pen-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    box-sizing: border-box;
-    min-height: 0;
-    overflow: hidden;
-    z-index: 10;
+    display: block;
 }
 
-/* Status / Title Typography */
+/* Result overlays the same page frame */
+#result {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none; /* hidden by default, shown when viewing output */
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+    padding: 15px;
+    box-sizing: border-box;
+    background: #000;
+    z-index: 5;
+}
+
+#result.visible {
+    display: flex;
+}
+
+/* Result Text Typography */
+#result .text-content { 
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; 
+    font-size: clamp(16px, 4vw, 24px);
+    line-height: 1.6; 
+    font-weight: 400;
+    text-align: left; 
+    white-space: pre-wrap; 
+    width: 100%;
+    color: #fff;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    height: auto;
+    display: block;
+    padding-bottom: 20px;
+}
+
+#result img { 
+    width: 100%;
+    height: 100%;
+    object-fit: contain; 
+    display: block; 
+    transition: transform 0.1s linear;
+    transform-origin: center center;
+}
+
+/* Status overlay inside the page frame */
 #status { 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     color: #888; 
     font-size: 14px; 
     font-weight: 400; 
     text-align: center;
-    width: 100%;
-    transition: opacity 0.3s ease;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, 0);
-    padding-top: 60px;
-    z-index: 20;
+    z-index: 10;
     pointer-events: none;
 }
 
@@ -116,67 +157,45 @@ body {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
-/* Result Container - Static Frame */
-#result {
-    flex: 1; 
-    width: 92%;
-    margin: 0 auto;
-    min-height: 0; 
+/* Page size label — bottom-left under the frame */
+#page-size-label {
+    width: 90vw;
+    max-width: 400px;
+    margin: 2px auto 0;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.3);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    text-align: left;
+    flex-shrink: 0;
+}
+
+/* Controls below the page — pinned to bottom */
+#page-controls {
+    flex-shrink: 0;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    overflow-y: auto; 
-    -webkit-overflow-scrolling: touch;
-    overflow-x: hidden;
-    position: relative;
-    padding: 15px;
-    box-sizing: border-box;
-    border: 1px solid #555;
-    border-radius: 8px;
+    padding: 8px 0 env(safe-area-inset-bottom, 10px) 0;
+    margin-top: auto; /* Push to bottom of screen */
 }
 
-/* Scrollbar for Result */
-#result::-webkit-scrollbar {
-    width: 6px;
+#close-view {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    width: 50px;
+    height: 40px;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
 }
 
-#result::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 3px;
-}
-
-#result::-webkit-scrollbar-thumb {
-    background-color: #555;
-    border-radius: 3px;
-}
-
-/* Result Text Typography */
-#result .text-content { 
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; 
-    font-size: clamp(20px, 6vw, 32px);
-    line-height: 1.6; 
-    font-weight: 400;
-    text-align: left; 
-    white-space: pre-wrap; 
-    width: 100%;
-    max-width: 800px;
+#close-view:hover {
     color: #fff;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    height: auto;
-    display: block;
-    padding-bottom: 50px;
-}
-
-#result img { 
-    width: 100%;
-    height: auto;
-    object-fit: contain; 
-    display: block; 
-    transition: transform 0.1s linear;
-    transform-origin: center center;
-    margin: 0 auto;
 }
 
 /* Metadata (Date/Time) */
@@ -184,27 +203,20 @@ body {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 14px;
     color: #888; 
-    margin: 10px 0;
     font-weight: 400; 
     text-align: center;
     width: 100%;
-    letter-spacing: -0.01em; 
 }
 
 /* Actions Bar */
 #actions {
     display: none; 
     gap: 10px;
-    padding: 15px 20px;
-    z-index: 50;
+    padding: 10px 20px;
     width: 100%;
     box-sizing: border-box;
     justify-content: center;
     flex-wrap: wrap;
-    background: rgba(0, 0, 0, 0.9);
-    position: sticky;
-    bottom: 0;
-    border-top: 1px solid #333;
 }
 
 .action-btn {
@@ -242,11 +254,6 @@ body {
     transform: scale(0.98);
 }
 
-.action-btn span {
-    font-weight: normal;
-    font-size: 1.2em;
-}
-
 /* Loader */
 .loader {
     width: 16px;
@@ -254,7 +261,7 @@ body {
     background: #fff;
     border-radius: 50%;
     display: inline-block;
-    margin: 40px auto 0;
+    margin: 20px auto 0;
     animation: pulse 1s infinite ease-in-out;
 }
 
@@ -343,7 +350,6 @@ body {
     padding: 4px;
     text-align: center;
     box-sizing: border-box;
-    font-family: Helvetica, Arial, sans-serif;
 }
 
 /* Backdrop */
@@ -382,7 +388,7 @@ body {
 }
 
 #message-modal {
-    z-index: 350; /* Ensure message modal is above settings modal */
+    z-index: 350;
 }
 
 .modal.hidden {
@@ -470,7 +476,6 @@ body {
 
 .setting-group textarea {
     resize: vertical;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 .primary-btn,
@@ -502,45 +507,6 @@ body {
     transform: scale(0.98);
 }
 
-.region-info {
-    background: #2c2c2c;
-    padding: 10px;
-    border-radius: 6px;
-    color: #aaa;
-    font-family: monospace;
-    font-size: 14px;
-    margin-bottom: 10px;
-}
-
-/* Live Drawing Canvas - APP BACKGROUND */
-#canvas-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #000;
-    background-image: url('/logo.png');
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 100px;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-#pen-canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-
-#canvas-overlay {
-    display: none;
-}
-
 /* Helper Classes */
 .flex-center {
     display: flex;
@@ -549,35 +515,6 @@ body {
 
 .hidden-element {
     display: none !important;
-}
-
-.spacer-20 {
-    height: 20px;
-    margin: 10px auto;
-}
-
-.status-text {
-    color: #666;
-    font-size: 0.6em;
-    display: block;
-}
-
-.status-text.connected {
-    color: #0f0;
-}
-
-.status-text.generating {
-    color: #888;
-}
-
-.status-text.error {
-    color: #f44;
-}
-
-.pen-status-msg {
-    margin-top: 10px;
-    color: #888;
-    font-size: 14px;
 }
 
 .inverted-image {
@@ -634,8 +571,8 @@ body {
 
 .region-inputs input {
     flex: 1;
-    min-width: 0; /* allows shrinking */
+    min-width: 0;
     padding: 8px;
     text-align: center;
-    margin-bottom: 0; /* override setting-group input margin */
+    margin-bottom: 0;
 }
