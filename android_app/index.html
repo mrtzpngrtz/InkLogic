@@ -21,13 +21,22 @@
 
     <!-- Single unified book-shaped page -->
     <div id="page-frame">
+        <div id="empty-state">
+            <img src="/logo.png" alt="InkLogic Logo">
+            
+        </div>
         <canvas id="pen-canvas"></canvas>
         <div id="result"></div>
-        <div id="status"></div>
     </div>
 
     <!-- Page size label -->
-    <div id="page-size-label"></div>
+    <div id="page-size-label">
+        <div class="label-row">
+            <span id="format-label"></span>
+            <span id="coords-label"></span>
+        </div>
+        <div id="status"></div>
+    </div>
 
     <!-- Controls below the page -->
     <div id="page-controls">

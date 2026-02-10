@@ -135,18 +135,37 @@ body {
     transform-origin: center center;
 }
 
-/* Status overlay inside the page frame */
-#status { 
+#empty-state {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: #888; 
-    font-size: 14px; 
-    font-weight: 400; 
-    text-align: center;
-    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#empty-state.visible {
+    opacity: 1;
+}
+
+#empty-state img {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+    border-radius: 16px;
+}
+
+#empty-state p {
+    margin: 0;
+    color: #888;
+    font-size: 16px;
+    font-weight: 400;
 }
 
 #main-logo {
@@ -167,6 +186,19 @@ body {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     text-align: left;
     flex-shrink: 0;
+}
+
+.label-row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+#status {
+    text-align: center;
+    margin-top: 5px;
+    color: #888;
+    min-height: 1.2em;
 }
 
 /* Controls below the page — pinned to bottom */

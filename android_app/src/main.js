@@ -98,7 +98,10 @@ const elements = {
     choiceShareBtn: document.getElementById('choice-share-btn'),
     choiceCancelBtn: document.getElementById('choice-cancel-btn'),
     closeChoiceBtn: document.getElementById('close-choice-btn'),
-    paperFormat: document.getElementById('paper-format')
+    paperFormat: document.getElementById('paper-format'),
+    emptyState: document.getElementById('empty-state'),
+    formatLabel: document.getElementById('format-label'),
+    coordsLabel: document.getElementById('coords-label')
 };
 
 const messageModal = {
@@ -233,9 +236,11 @@ async function init() {
     // Populate trigger region inputs
     updateRegionInputs();
     
-    // Load show regions preference
-    const showRegions = storageManager.get('showTriggerRegions', true);
+    // Force show regions to OFF at startup as requested
+    // We ignore the saved preference here to ensure it's always off at start
+    const showRegions = false;
     elements.showRegionsCheckbox.checked = showRegions;
+    storageManager.setValue('showTriggerRegions', false);
 
     // Initialize live drawing canvas
     initLiveCanvas();
@@ -254,22 +259,23 @@ async function init() {
         if (penManager.connectedDevice) {
             elements.headerConnectBtn.classList.add('connected');
             elements.headerConnectBtn.innerHTML = '<img src="/connected.svg" alt="Connected">';
+            elements.emptyState.classList.remove('visible');
         } else {
             elements.headerConnectBtn.classList.remove('connected');
             elements.headerConnectBtn.innerHTML = '<img src="/connect.svg" alt="Connect">';
+            if (!currentItem) elements.emptyState.classList.add('visible');
         }
     };
 
     // Show coordinates instead of pen events
     penManager.onDebugInfo = (info) => {
-        const currentStatus = elements.status.innerText;
-        // Don't overwrite critical messages like "Generating..." or errors
-        if (!currentStatus.includes('Generating') && !currentStatus.includes('Error')) {
-             elements.status.innerText = info;
-        }
+        elements.coordsLabel.innerText = info;
     };
     
     updateStatus('Connect Pen');
+    if (!penManager.connectedDevice && !currentItem) {
+        elements.emptyState.classList.add('visible');
+    }
     
     penManager.onTrigger = (stroke) => {
         const now = Date.now();
@@ -326,9 +332,8 @@ function applyFormat(formatKey) {
     }
     
     // Update page size label
-    const label = document.getElementById('page-size-label');
-    if (label) {
-        label.textContent = `${fmt.widthCm} × ${fmt.heightCm} cm`;
+    if (elements.formatLabel) {
+        elements.formatLabel.textContent = `${fmt.widthCm} × ${fmt.heightCm} cm`;
     }
     
     // Tell pen manager about the notebook coordinate space
@@ -601,8 +606,9 @@ function renderGallery() {
 function showItem(item) {
     currentItem = item;
     showingInput = false;
-    // Hide status when viewing items
+    // Hide status and empty state when viewing items
     elements.status.style.display = 'none';
+    elements.emptyState.classList.remove('visible');
     elements.actions.style.display = 'flex';
     elements.closeView.classList.remove('hidden-element');
     
@@ -658,9 +664,11 @@ function clearView() {
     
     elements.status.style.display = 'block';
     if (penManager.connectedDevice) {
-        updateStatus('Pen connected');
+        updateStatus('');
+        elements.emptyState.classList.remove('visible');
     } else {
         updateStatus('Connect Pen');
+        elements.emptyState.classList.add('visible');
     }
     
     elements.actions.style.display = 'none';
@@ -875,7 +883,7 @@ function updateStatus(msg) {
          elements.status.innerHTML = msg;
          setTimeout(() => {
              if (penManager.connectedDevice) {
-                 elements.status.innerHTML = 'Pen connected';
+                 elements.status.innerHTML = '';
              } else {
                  elements.status.innerHTML = 'Connect Pen';
              }
